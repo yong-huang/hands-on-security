@@ -1,0 +1,194 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "pcap 分析流水线：从抓包文件到情报报告",
+    "output": "pcap_report.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [
+      1080,
+      560
+    ]
+  },
+  "stages": [
+    {
+      "label": "输入"
+    },
+    {
+      "label": "解析"
+    },
+    {
+      "label": "统计聚合"
+    },
+    {
+      "label": "应用层提取"
+    },
+    {
+      "label": "报告"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "pcap",
+      "type": "database",
+      "label": "pcap 文件",
+      "sublabel": "合成 34 包 / 真实录制",
+      "stage": 0,
+      "row": 1,
+      "tag": "离线",
+      "width": 150
+    },
+    {
+      "id": "dissect",
+      "type": "backend",
+      "label": "分层拆解",
+      "sublabel": "scapy 逐层解析",
+      "stage": 1,
+      "row": 1,
+      "tag": "Ether→IP→TCP",
+      "width": 150
+    },
+    {
+      "id": "proto",
+      "type": "backend",
+      "label": "协议分布",
+      "sublabel": "按层计数",
+      "stage": 2,
+      "row": 0,
+      "width": 150
+    },
+    {
+      "id": "talkers",
+      "type": "backend",
+      "label": "Top Talker",
+      "sublabel": "按 IP 聚合流量",
+      "stage": 2,
+      "row": 2,
+      "width": 150
+    },
+    {
+      "id": "http",
+      "type": "backend",
+      "label": "HTTP 事务",
+      "sublabel": "请求与状态配对",
+      "stage": 3,
+      "row": 1,
+      "width": 150
+    },
+    {
+      "id": "creds",
+      "type": "security",
+      "label": "凭据提取",
+      "sublabel": "POST 表单里的明文",
+      "stage": 3,
+      "row": 2,
+      "tag": "最高优先级",
+      "width": 150
+    },
+    {
+      "id": "report",
+      "type": "frontend",
+      "label": "Markdown 报告",
+      "sublabel": "证据链 + 建议",
+      "stage": 4,
+      "row": 1,
+      "width": 150
+    }
+  ],
+  "flows": [
+    {
+      "from": "pcap",
+      "to": "dissect",
+      "label": "rdpcap 读取",
+      "classification": "离线",
+      "variant": "emphasis",
+      "route": "straight"
+    },
+    {
+      "from": "dissect",
+      "to": "proto",
+      "label": "按协议计数",
+      "classification": "可复核",
+      "variant": "default",
+      "route": "vertical-channel"
+    },
+    {
+      "from": "dissect",
+      "to": "talkers",
+      "label": "按 IP 聚合",
+      "classification": "可复核",
+      "variant": "default",
+      "route": "vertical-channel"
+    },
+    {
+      "from": "dissect",
+      "to": "http",
+      "label": "HTTP 层解析",
+      "classification": "端口绑定",
+      "variant": "emphasis"
+    },
+    {
+      "from": "http",
+      "to": "creds",
+      "label": "POST 表单",
+      "classification": "明文警报",
+      "variant": "security",
+      "route": "vertical-channel"
+    },
+    {
+      "from": "proto",
+      "to": "report",
+      "label": "分布表",
+      "classification": "tshark 对账",
+      "variant": "default",
+      "route": "top-channel"
+    },
+    {
+      "from": "talkers",
+      "to": "report",
+      "label": "流量榜",
+      "classification": "tshark 对账",
+      "variant": "default",
+      "route": "bottom-channel"
+    },
+    {
+      "from": "creds",
+      "to": "report",
+      "label": "凭据警报",
+      "classification": "行动项",
+      "variant": "security",
+      "route": "vertical-channel",
+      "labelDx": -70
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "三层统计，层层可复核",
+      "items": [
+        "协议分布：TCP/UDP/ICMP/ARP/DNS/HTTP/TLS 按层计数",
+        "Top Talker：按 IP 聚合包数与字节数",
+        "独立校验：同一 pcap 交给 tshark 复算，8 项数字对账"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "应用层才是情报区",
+      "items": [
+        "HTTP 请求与响应按顺序配对，看到完整事务",
+        "POST 表单里的用户名/口令原样可读——明文传输的直接代价",
+        "TLS 会话只剩「有流量」这一条元数据"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "报告即证据链",
+      "items": [
+        "每个数字附统计口径，任何断言可回到包级复核",
+        "凭据一经发现即最高优先级：改密 + 强制 HTTPS",
+        "抓包分析攻防两用：蓝队回溯事件，红队嗅探明文"
+      ]
+    }
+  ]
+}

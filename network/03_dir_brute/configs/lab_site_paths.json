@@ -1,0 +1,76 @@
+{
+  "description": "实验 03 靶站：11 条顶层隐藏路径 + 2 条递归一层路径 + 软 404 陷阱（未知路径也返回 200）",
+  "soft_404": {
+    "status": 200,
+    "body": "<h1>Not Found</h1><p>您访问的页面不存在。软 404 陷阱：未知路径也返回 200。</p>"
+  },
+  "paths": [
+    {
+      "path": "admin/",
+      "status": 200,
+      "body": "<h1>管理后台登录</h1><form action=\"/admin/login\" method=\"post\"><input name=\"user\" placeholder=\"用户名\"><input type=\"password\" name=\"pass\" placeholder=\"密码\"><button>登录</button></form>"
+    },
+    {
+      "path": "admin/panel/",
+      "status": 200,
+      "body": "<h1>后台控制面板</h1><p>此页面藏在 /admin/ 之下，只有开启递归一层才能发现。</p><ul><li>用户管理</li><li>日志审计</li><li>站点备份</li></ul>"
+    },
+    {
+      "path": "api/",
+      "status": 200,
+      "body": "<h1>内部 API 索引</h1><p>可用的接口都登记在这里，顺着索引还能撞到 /api/status。</p><ul><li>/api/status</li><li>/api/users（即将上线）</li></ul>"
+    },
+    {
+      "path": "api/status",
+      "status": 200,
+      "content_type": "application/json",
+      "body": "{\"status\":\"ok\",\"version\":\"1.4.2\",\"uptime\":\"72d\",\"build\":\"2026.10\",\"note\":\"实验 03 靶站健康检查接口，仅用于本地演示\"}"
+    },
+    {
+      "path": "backup/",
+      "status": 200,
+      "body": "<h1>备份目录</h1><p>服务器定期把数据库导出到这里。</p><ul><li><a href=\"db-2026-10-01.sql\">db-2026-10-01.sql</a>（1.2 MB）</li><li><a href=\"www-2026-10-01.tar.gz\">www-2026-10-01.tar.gz</a>（8.4 MB）</li></ul>"
+    },
+    {
+      "path": "config.php.bak",
+      "status": 200,
+      "body": "<h1>config.php.bak</h1><p>旧配置备份：数据库口令与 API 密钥还在里面，上线前必须挪走。</p><pre>define('DB_PASSWORD', 'S3cret!');</pre>"
+    },
+    {
+      "path": "dev/",
+      "status": 200,
+      "body": "<h1>开发调试页</h1><p>当前环境变量模式：development；本页面不应对公网开放。</p><pre>DEBUG=true\nFLASK_ENV=development</pre>"
+    },
+    {
+      "path": "old/",
+      "status": 200,
+      "body": "<h1>旧版站点</h1><p>2019 年的静态首页，还挂在服务器上没删。</p><p><a href=\"/old/index.html\">进入旧版首页</a></p>"
+    },
+    {
+      "path": "private/",
+      "status": 403,
+      "body": "<h1>403 Forbidden</h1><p>目录存在但拒绝访问——403 同样是一条有效发现。</p>"
+    },
+    {
+      "path": "robots.txt",
+      "status": 200,
+      "content_type": "text/plain; charset=utf-8",
+      "body": "User-agent: *\nDisallow: /secret/\nDisallow: /admin/\n"
+    },
+    {
+      "path": "secret/",
+      "status": 200,
+      "body": "<h1>未公开页面</h1><p>robots.txt 的 Disallow 本想隐藏它，反而泄露了它。</p><ul><li>内部公告</li><li>测试账号</li></ul>"
+    },
+    {
+      "path": "test/",
+      "status": 200,
+      "body": "<h1>测试页</h1><p>上线前的临时测试入口，忘了删。</p>"
+    },
+    {
+      "path": "uploads/",
+      "status": 200,
+      "body": "<h1>上传目录</h1><p>头像与附件落地在这里，目录列表没有关。</p><ul><li>avatar-01.png</li><li>report.pdf</li></ul>"
+    }
+  ]
+}

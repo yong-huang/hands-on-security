@@ -1,0 +1,32 @@
+{
+  "description": "三个样本站的期望识别结果（web_finger.sh observe 断言用；port 为默认端口，脚本可用 LAB_PORT 整体平移）",
+  "samples": [
+    {
+      "name": "Python http.server 静态站",
+      "port": 8030,
+      "expect": [
+        "Python http.server",
+        "Python"
+      ]
+    },
+    {
+      "name": "Flask 博客样本站",
+      "port": 8031,
+      "expect": [
+        "Werkzeug 开发服务器",
+        "Python",
+        "Flask",
+        "LabBlog"
+      ]
+    },
+    {
+      "name": "Apache + PHP 仿真站",
+      "port": 8032,
+      "expect": [
+        "Apache httpd",
+        "PHP",
+        "MockCMS"
+      ]
+    }
+  ]
+}

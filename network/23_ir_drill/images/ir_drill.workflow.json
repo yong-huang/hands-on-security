@@ -1,0 +1,175 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "应急响应流水线：双快照进，五路取证，评分定性与报告出",
+    "output": "ir_drill.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "lanes": [
+    {
+      "id": "flow",
+      "label": "排查流水线"
+    },
+    {
+      "id": "defense",
+      "label": "闭环",
+      "variant": "exception"
+    }
+  ],
+  "phases": [
+    {
+      "id": "forensic",
+      "label": "取证",
+      "fromCol": 1,
+      "toCol": 2,
+      "variant": "emphasis"
+    },
+    {
+      "id": "triage",
+      "label": "判定与输出",
+      "fromCol": 3,
+      "toCol": 4
+    },
+    {
+      "id": "remediate",
+      "label": "处置",
+      "fromCol": 5,
+      "toCol": 5,
+      "variant": "dashed"
+    }
+  ],
+  "mainPath": ["targets", "export", "checks", "score", "report", "fix"],
+  "nodes": [
+    {
+      "id": "targets",
+      "lane": "flow",
+      "col": 0,
+      "type": "security",
+      "label": "两个靶机",
+      "sublabel": "预埋 × 干净基线",
+      "width": 150,
+      "tag": "双快照"
+    },
+    {
+      "id": "export",
+      "lane": "flow",
+      "col": 1,
+      "type": "backend",
+      "label": "导出快照",
+      "sublabel": "docker export → rootfs",
+      "width": 150,
+      "tag": "只读"
+    },
+    {
+      "id": "checks",
+      "lane": "flow",
+      "col": 2,
+      "type": "backend",
+      "label": "五路检查",
+      "sublabel": "cron·账号·ssh·SUID·history",
+      "width": 150,
+      "tag": "逐项取证"
+    },
+    {
+      "id": "score",
+      "lane": "flow",
+      "col": 3,
+      "type": "backend",
+      "label": "评分与判定",
+      "sublabel": "时间线 + 风险分级",
+      "width": 150,
+      "tag": "120 分"
+    },
+    {
+      "id": "report",
+      "lane": "flow",
+      "col": 4,
+      "type": "frontend",
+      "label": "IR 报告",
+      "sublabel": "证据路径 / 建议",
+      "width": 150,
+      "tag": "证据在案"
+    },
+    {
+      "id": "fix",
+      "lane": "defense",
+      "col": 5,
+      "type": "security",
+      "label": "处置闭环",
+      "sublabel": "清后门 + 改密 + 巡检",
+      "width": 150,
+      "tag": "行动项"
+    }
+  ],
+  "edges": [
+    {
+      "id": "targets-export",
+      "from": "targets",
+      "to": "export",
+      "label": "两份快照",
+      "variant": "emphasis"
+    },
+    {
+      "id": "export-checks",
+      "from": "export",
+      "to": "checks",
+      "label": "只读取证",
+      "variant": "emphasis"
+    },
+    {
+      "id": "checks-score",
+      "from": "checks",
+      "to": "score",
+      "label": "证据排序",
+      "variant": "emphasis"
+    },
+    {
+      "id": "score-report",
+      "from": "score",
+      "to": "report",
+      "label": "分级输出",
+      "variant": "emphasis"
+    },
+    {
+      "id": "report-fix",
+      "from": "report",
+      "to": "fix",
+      "label": "行动项",
+      "variant": "security",
+      "role": "return"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "五处后门的形状",
+      "items": [
+        "cron 反弹：/dev/tcp 外连伪装成系统更新任务",
+        "UID 0 隐蔽账号：passwd 里多出一个「root 级」用户",
+        "authorized_keys：陌生的公钥就是常驻钥匙",
+        "隐藏 SUID：点开头的文件名 + setuid 位",
+        "history 自证：攻击者自己的操作记录"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "为什么先导出再分析",
+      "items": [
+        "保全现场：分析只动快照，不碰原机",
+        "只读可复算：五路检查与评分可随时复跑对账",
+        "mtime 就是证据的时序——时间线还原的地基"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "评分与准入线",
+      "items": [
+        "严重 40 / 高 25 / 中 15——本例累计 120 → 高度疑似失陷",
+        "干净基线必须 0 误报，检测器才配上岗",
+        "报告以行动项收尾：清后门、改密、横向巡检"
+      ]
+    }
+  ]
+}

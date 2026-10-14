@@ -1,0 +1,69 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Web 目录爆破：字典探测、软 404 降噪与递归一层",
+    "output": "dir_brute.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "lanes": [
+    { "id": "tool", "label": "本地爆破器" },
+    { "id": "site", "label": "flask 靶站" },
+    { "id": "edge", "label": "误报与边界", "variant": "exception" }
+  ],
+  "phases": [
+    { "id": "prepare", "label": "字典准备", "fromCol": 0, "toCol": 0 },
+    { "id": "scan", "label": "并发探测", "fromCol": 1, "toCol": 2, "variant": "emphasis" },
+    { "id": "filter", "label": "降噪过滤", "fromCol": 3, "toCol": 3 },
+    { "id": "collect", "label": "命中与递归", "fromCol": 4, "toCol": 5, "variant": "dashed" }
+  ],
+  "mainPath": ["dict", "probe", "serve", "filter", "hits", "recurse"],
+  "nodes": [
+    { "id": "dict", "lane": "tool", "col": 0, "type": "database", "label": "默认字典", "sublabel": "wordlist.txt 72 条", "width": 138 },
+    { "id": "probe", "lane": "tool", "col": 1, "type": "backend", "label": "并发探测", "sublabel": "20 线程 · 不跟随跳转", "width": 138 },
+    { "id": "serve", "lane": "site", "col": 2, "type": "cloud", "label": "靶站应答", "sublabel": "13 条预置路径", "tag": "soft-404", "width": 138 },
+    { "id": "filter", "lane": "tool", "col": 3, "type": "security", "label": "白名单 + 基线窗口", "sublabel": "随机路径采样 · ±10B", "width": 138 },
+    { "id": "noise", "lane": "edge", "col": 3, "type": "security", "label": "软 404 误报", "sublabel": "61 个被丢弃", "width": 138 },
+    { "id": "hits", "lane": "tool", "col": 4, "type": "frontend", "label": "命中表", "sublabel": "13 条 = 11 + 2", "width": 138 },
+    { "id": "recurse", "lane": "tool", "col": 5, "type": "messagebus", "label": "递归一层", "sublabel": "9 个目录 × 72 词", "width": 138 }
+  ],
+  "edges": [
+    { "id": "dict-probe", "from": "dict", "to": "probe", "label": "逐词 GET", "variant": "emphasis" },
+    { "id": "probe-serve", "from": "probe", "to": "serve", "label": "GET /base/word", "variant": "emphasis" },
+    { "id": "serve-filter", "from": "serve", "to": "filter", "label": "状态码 + 长度", "variant": "emphasis" },
+    { "id": "filter-hits", "from": "filter", "to": "hits", "label": "通过 → 记录", "variant": "emphasis" },
+    { "id": "filter-noise", "from": "filter", "to": "noise", "label": "撞基线窗口", "variant": "security", "role": "error" },
+    { "id": "hits-recurse", "from": "hits", "to": "recurse", "label": "301 判定目录", "variant": "default" },
+    { "id": "recurse-probe", "from": "recurse", "to": "probe", "label": "再探一层", "variant": "dashed", "role": "return", "route": "up-channel" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "三层过滤",
+      "items": [
+        "状态码白名单：404/500 直接淘汰",
+        "软 404 基线：未知路径也 200 时，同状态同长度即丢弃",
+        "目录判定：301 或 200 且末段无扩展名"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "靶站陷阱设计",
+      "items": [
+        "顶层未知路径 → 200 软 404，逼出基线降噪",
+        "目录内未知路径 → 真 404（应用自身路由行为）",
+        "robots.txt 的 Disallow 反而泄露 /secret/"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "递归与边界",
+      "items": [
+        "只对目录命中递归一层：720 次请求封顶",
+        "靶站实测：无递归 11 条 → 递归 13 条",
+        "只打本地与授权目标，高并发等于开灯行动"
+      ]
+    }
+  ]
+}

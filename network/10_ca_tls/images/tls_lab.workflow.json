@@ -1,0 +1,216 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "证书链的一生：从自建 CA 签发到客户端校验",
+    "output": "tls_lab.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "lanes": [
+    {
+      "id": "issuer",
+      "label": "根与签发"
+    },
+    {
+      "id": "server",
+      "label": "服务端"
+    },
+    {
+      "id": "client",
+      "label": "客户端"
+    },
+    {
+      "id": "boundary",
+      "label": "边界：验不过就断",
+      "variant": "exception"
+    }
+  ],
+  "phases": [
+    {
+      "id": "issue",
+      "label": "签发",
+      "fromCol": 0,
+      "toCol": 2
+    },
+    {
+      "id": "serve",
+      "label": "上线路",
+      "fromCol": 3,
+      "toCol": 3,
+      "variant": "emphasis"
+    },
+    {
+      "id": "verify",
+      "label": "校验",
+      "fromCol": 4,
+      "toCol": 5,
+      "variant": "dashed"
+    }
+  ],
+  "mainPath": [
+    "ca",
+    "sign",
+    "cert",
+    "serve",
+    "verify",
+    "accept"
+  ],
+  "nodes": [
+    {
+      "id": "ca",
+      "lane": "issuer",
+      "col": 0,
+      "type": "security",
+      "label": "根 CA",
+      "sublabel": "自签 · 私钥签一切",
+      "width": 138,
+      "tag": "hosec-lab-ca"
+    },
+    {
+      "id": "sign",
+      "lane": "issuer",
+      "col": 1,
+      "type": "security",
+      "label": "签发",
+      "sublabel": "CA 私钥盖戳",
+      "width": 138
+    },
+    {
+      "id": "csr",
+      "lane": "server",
+      "col": 0,
+      "type": "backend",
+      "label": "密钥 + CSR",
+      "sublabel": "CN=localhost",
+      "width": 138
+    },
+    {
+      "id": "cert",
+      "lane": "server",
+      "col": 2,
+      "type": "database",
+      "label": "服务器证书",
+      "sublabel": "SAN: localhost/127.0.0.1",
+      "width": 138
+    },
+    {
+      "id": "serve",
+      "lane": "server",
+      "col": 3,
+      "type": "cloud",
+      "label": "HTTPS 服务",
+      "sublabel": "握手出示整条链",
+      "width": 138,
+      "tag": ":8443"
+    },
+    {
+      "id": "verify",
+      "lane": "client",
+      "col": 4,
+      "type": "security",
+      "label": "客户端校验",
+      "sublabel": "链 · SAN · 有效期",
+      "width": 138
+    },
+    {
+      "id": "accept",
+      "lane": "client",
+      "col": 5,
+      "type": "frontend",
+      "label": "连接建立",
+      "sublabel": "信任锚命中 → 200",
+      "width": 138
+    },
+    {
+      "id": "reject",
+      "lane": "boundary",
+      "col": 5,
+      "type": "security",
+      "label": "拒绝",
+      "sublabel": "链对不上 → 报错",
+      "width": 138
+    }
+  ],
+  "edges": [
+    {
+      "id": "csr-sign",
+      "from": "csr",
+      "to": "sign",
+      "label": "公钥 + 身份",
+      "variant": "emphasis"
+    },
+    {
+      "id": "ca-sign",
+      "from": "ca",
+      "to": "sign",
+      "label": "唯一信任源",
+      "variant": "emphasis"
+    },
+    {
+      "id": "sign-cert",
+      "from": "sign",
+      "to": "cert",
+      "label": "签名盖戳",
+      "variant": "emphasis"
+    },
+    {
+      "id": "cert-serve",
+      "from": "cert",
+      "to": "serve",
+      "label": "装载证书",
+      "variant": "emphasis"
+    },
+    {
+      "id": "serve-verify",
+      "from": "serve",
+      "to": "verify",
+      "label": "握手出示链",
+      "variant": "emphasis"
+    },
+    {
+      "id": "verify-accept",
+      "from": "verify",
+      "to": "accept",
+      "label": "信任锚命中",
+      "variant": "emphasis"
+    },
+    {
+      "id": "verify-reject",
+      "from": "verify",
+      "to": "reject",
+      "label": "验不过就断",
+      "variant": "security",
+      "role": "error"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "证书里装了什么",
+      "items": [
+        "身份（CN/SAN）、公钥、有效期、签发者",
+        "CA 私钥签名，客户端用 CA 公钥验签",
+        "自签不被信任：没有第二方背书"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "为什么 SAN 才作数",
+      "items": [
+        "现代客户端不看 CN，只看 SAN（须含 DNS/IP）",
+        "curl / Python / 浏览器对同一证书同一判定",
+        "证书是身份声明，信任靠链条传递"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "三种场景一个结论",
+      "items": [
+        "信任实验 CA → 200；看错误信息懂安全",
+        "系统库 / 错误 CA → 找不到签发者被拒",
+        "信任锚须与签发链同源——PKI 的全部秘密"
+      ]
+    }
+  ]
+}

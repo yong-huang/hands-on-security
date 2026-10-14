@@ -1,0 +1,65 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Web 指纹识别：响应头、HTML 特征与 favicon hash 的规则引擎",
+    "output": "web_finger.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "lanes": [
+    { "id": "tool", "label": "本地识别器" },
+    { "id": "sample", "label": "样本站" },
+    { "id": "edge", "label": "边界与诚实", "variant": "exception" }
+  ],
+  "phases": [
+    { "id": "capture", "label": "采集信号", "fromCol": 0, "toCol": 2 },
+    { "id": "match", "label": "规则匹配", "fromCol": 3, "toCol": 3, "variant": "emphasis" },
+    { "id": "output", "label": "证据输出", "fromCol": 4, "toCol": 4, "variant": "dashed" }
+  ],
+  "mainPath": ["probe", "target", "signals", "engine", "report"],
+  "nodes": [
+    { "id": "probe", "lane": "tool", "col": 0, "type": "backend", "label": "采集探测", "sublabel": "GET 首页 + favicon.ico", "width": 138 },
+    { "id": "target", "lane": "sample", "col": 1, "type": "cloud", "label": "三个样本站", "sublabel": "http.server / flask / 仿真", "width": 138 },
+    { "id": "signals", "lane": "tool", "col": 2, "type": "database", "label": "信号表", "sublabel": "响应头 / HTML / favicon md5", "width": 138 },
+    { "id": "engine", "lane": "tool", "col": 3, "type": "security", "label": "规则引擎", "sublabel": "跨组 AND · 组内 OR", "tag": "8 条规则", "width": 138 },
+    { "id": "report", "lane": "tool", "col": 4, "type": "frontend", "label": "命中报告", "sublabel": "每条附证据链", "width": 138 },
+    { "id": "miss", "lane": "edge", "col": 4, "type": "security", "label": "未匹配规则", "sublabel": "识别盲区 · 待扩规则", "width": 138 }
+  ],
+  "edges": [
+    { "id": "probe-target", "from": "probe", "to": "target", "label": "GET / + favicon.ico", "variant": "emphasis" },
+    { "id": "target-signals", "from": "target", "to": "signals", "label": "响应头 + 正文 + 图标", "variant": "emphasis" },
+    { "id": "signals-engine", "from": "signals", "to": "engine", "label": "三类信号", "variant": "emphasis" },
+    { "id": "engine-report", "from": "engine", "to": "report", "label": "命中 + 证据", "variant": "emphasis" },
+    { "id": "engine-miss", "from": "engine", "to": "miss", "label": "全部组未命中", "variant": "security", "role": "error" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "三类信号",
+      "items": [
+        "响应头：Server / X-Powered-By / Set-Cookie 名",
+        "HTML 特征：meta generator、特征路径、注释",
+        "favicon md5：固定字节的图像指纹，同站恒定"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "规则怎么匹配",
+      "items": [
+        "跨条件组 AND：如 CMS 需 meta 与 favicon 同时命中",
+        "组内多候选 OR：任一特征命中即算该组通过",
+        "每条命中必须给证据（哪个头、哪段 HTML、哪个 hash）"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "边界与诚实",
+      "items": [
+        "Server 头可被定制或伪造成任何软件",
+        "无匹配就是「未识别」，先扩规则/信号再谈结论",
+        "只打本地与授权目标，探测请求同样会进对方日志"
+      ]
+    }
+  ]
+}

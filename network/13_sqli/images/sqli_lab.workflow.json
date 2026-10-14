@@ -1,0 +1,160 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "SQL 注入的三种问法：回显、布尔、时间——以及一行修复",
+    "output": "sqli_lab.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "lanes": [
+    {
+      "id": "flow",
+      "label": "注入流水线"
+    },
+    {
+      "id": "defense",
+      "label": "防线",
+      "variant": "exception"
+    }
+  ],
+  "phases": [
+    {
+      "id": "probe",
+      "label": "探测",
+      "fromCol": 0,
+      "toCol": 0
+    },
+    {
+      "id": "ask",
+      "label": "三种问法",
+      "fromCol": 1,
+      "toCol": 3,
+      "variant": "emphasis"
+    },
+    {
+      "id": "fix",
+      "label": "修复",
+      "fromCol": 4,
+      "toCol": 4,
+      "variant": "dashed"
+    }
+  ],
+  "mainPath": [
+    "probe",
+    "union",
+    "blind",
+    "time",
+    "fix"
+  ],
+  "nodes": [
+    {
+      "id": "probe",
+      "lane": "flow",
+      "col": 0,
+      "type": "security",
+      "label": "探针",
+      "sublabel": "定列数 + 布尔/时间探测",
+      "width": 150
+    },
+    {
+      "id": "union",
+      "lane": "flow",
+      "col": 1,
+      "type": "backend",
+      "label": "UNION SELECT",
+      "sublabel": "结果直接回显 · 1 请求全表",
+      "width": 150,
+      "tag": "最快"
+    },
+    {
+      "id": "blind",
+      "lane": "flow",
+      "col": 2,
+      "type": "backend",
+      "label": "布尔盲注",
+      "sublabel": "页面差异信道 · ~7 请求/字符",
+      "width": 150
+    },
+    {
+      "id": "time",
+      "lane": "flow",
+      "col": 3,
+      "type": "backend",
+      "label": "时间盲注",
+      "sublabel": "SLEEP 时间信道 · 秒/字符",
+      "width": 150,
+      "tag": "最慢"
+    },
+    {
+      "id": "fix",
+      "lane": "defense",
+      "col": 4,
+      "type": "security",
+      "label": "参数化查询",
+      "sublabel": "注入当纯数据 · 三条信道全失效",
+      "width": 150,
+      "tag": "一行修复"
+    }
+  ],
+  "edges": [
+    {
+      "id": "probe-union",
+      "from": "probe",
+      "to": "union",
+      "label": "ORDER BY 定列数",
+      "variant": "emphasis"
+    },
+    {
+      "id": "union-blind",
+      "from": "union",
+      "to": "blind",
+      "label": "无回显时换问法",
+      "variant": "dashed"
+    },
+    {
+      "id": "blind-time",
+      "from": "blind",
+      "to": "time",
+      "label": "连差异都没有时",
+      "variant": "dashed"
+    },
+    {
+      "id": "time-fix",
+      "from": "time",
+      "to": "fix",
+      "label": "修复覆盖全部",
+      "variant": "security",
+      "role": "return"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "三种问法的成本",
+      "items": [
+        "union：1 个请求拖出整张 users 表",
+        "布尔盲注：约 7 请求/字符（ASCII 二分）",
+        "时间盲注：秒级等待/字符——信道越安静越慢"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "检测器的三探针",
+      "items": [
+        "布尔差异：真/假条件让响应内容变化",
+        "时间延迟：条件 SLEEP(1.5) 实测 >0.8s",
+        "对照点必须判安全——检测器也会误报"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "修复与工程化",
+      "items": [
+        "参数化查询一行封死全部信道",
+        "sqlmap 与手工结果一致：工具只是自动化了思路",
+        "注意 low/medium 的传参差异（GET vs POST）"
+      ]
+    }
+  ]
+}

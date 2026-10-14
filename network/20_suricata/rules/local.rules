@@ -1,0 +1,25 @@
+# =============================================================================
+# 20 · Suricata 自定义规则：nmap SYN 扫描 + SQLi union select
+# 语法骨架：action proto 源 端口 -> 目标 端口 (msg; 匹配条件; sid; rev;)
+#   action  : alert（告警）/ drop（inline 拦截，macOS 离线模式不可用）
+#   匹配条件: flags / content / pcre / http.uri / detection_filter 等
+#   sid     : 规则唯一编号（自定义从 2000000 起）；rev 是修订号
+# =============================================================================
+
+# ① SYN 扫描：同一来源 5 秒内 20 个纯 SYN（S=1、ACK=0、RST=0）就告警
+#    flags:S,12 —— 只匹配「S 置位、RST 与 ACK 都不置位」的包
+#    detection_filter —— 滑动阈值（与实验 19 的窗口同一个思想，换到引擎里）
+alert tcp any any -> $HOME_NET any (msg:"SCAN nmap SYN 扫描：同一来源 5 秒内高频 SYN"; \
+    flags:S,12; detection_filter: track by_src, count 20, seconds 5; \
+    classtype:attempted-recon; sid:2000001; rev:1;)
+
+# ② SQLi 尝试：HTTP 请求行的 URI 里出现 union ... select（大小写不敏感）
+#    flow:established,to_server —— 只看出站到服务器的已建立连接
+#    http.uri —— 直接贴在 URI 这一层匹配；pcre 里 [\s+]+ 兼容空格/+ 两种分隔
+alert http any any -> $HOME_NET any (msg:"WEB SQLi 尝试：URI 含 UNION SELECT"; \
+    flow:established,to_server; http.uri; pcre:"/union[\s+]+select/i"; \
+    classtype:web-application-attack; sid:2000002; rev:1;)
+
+# 附：更多骨架示例（本实验不启用）
+# alert http any any -> $HOME_NET any (msg:"扫描器 UA"; http.user_agent; content:"sqlmap"; nocase; sid:2000003;)
+# alert tcp any any -> $HOME_NET any (msg:"路径穿越"; http.uri; content:"../"; sid:2000004;)

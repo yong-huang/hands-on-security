@@ -1,0 +1,17 @@
+{
+  "description": "演示目标：10 个弱口令的 MD5（8 个直出字典 + 2 个需规则变换）与 1 个 bcrypt（成本因子 12）。目标哈希由 make-sample 用本文件生成；破解器不读本文件（它只拿到哈希）。",
+  "wordlist": [
+    "password", "admin", "letmein", "dragon", "monkey", "master", "welcome",
+    "shadow", "qwerty", "iloveyou", "sunshine", "princess", "football",
+    "baseball", "trustno1", "abc123", "hello", "freedom", "whatever",
+    "zaq12wsx", "starwars", "superman", "batman", "pokemon", "computer"
+  ],
+  "md5_plain": [
+    "dragon", "letmein", "monkey", "master", "welcome", "shadow", "qwerty",
+    "trustno1", "Password1", "MONKEY"
+  ],
+  "rule_required": ["Password1", "MONKEY"],
+  "john_cross_check": ["dragon", "letmein"],
+  "bcrypt_plain": "sunshine",
+  "bcrypt_cost": 12
+}

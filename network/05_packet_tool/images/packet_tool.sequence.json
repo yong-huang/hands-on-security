@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "一次 ping 的生命：构造、发送、应答与抓包",
+    "output": "packet_tool.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "column_fit": "spread",
+    "viewBox": [1060, 560]
+  },
+  "participants": [
+    { "id": "tool", "type": "backend", "label": "本地工具（scapy）", "sublabel": "构造与解析" },
+    { "id": "iface", "type": "messagebus", "label": "内核与网卡", "sublabel": "序列化后真的出门" },
+    { "id": "peer", "type": "cloud", "label": "对端", "sublabel": "网关 / 127.0.0.1" },
+    { "id": "sniffer", "type": "security", "label": "BPF 抓包器", "sublabel": "特权通道的副本" }
+  ],
+  "segments": [
+    { "from": 150, "to": 320, "label": "一次 ping 往返" },
+    { "from": 340, "to": 430, "label": "边抓边发" }
+  ],
+  "messages": [
+    { "from": "tool", "to": "iface", "y": 180, "label": "序列化：「字段树」变二进制", "variant": "emphasis" },
+    { "from": "iface", "to": "peer", "y": 222, "label": "ICMP echo-request 上线路", "variant": "emphasis" },
+    { "from": "peer", "to": "iface", "y": 264, "label": "echo-reply", "variant": "return" },
+    { "from": "iface", "to": "tool", "y": 306, "label": "应答交回（sr1 返回）", "variant": "return" },
+    { "from": "iface", "to": "sniffer", "y": 370, "label": "BPF 过滤 icmp：同一帧的副本", "variant": "dashed" },
+    { "from": "sniffer", "to": "tool", "y": 412, "label": "逐包摘要 + 计数", "variant": "dashed" }
+  ],
+  "activations": [
+    { "participant": "tool", "from": 160, "to": 320, "type": "backend" },
+    { "participant": "iface", "from": 170, "to": 316, "type": "messagebus" },
+    { "participant": "peer", "from": 212, "to": 274, "type": "cloud" },
+    { "participant": "sniffer", "from": 356, "to": 424, "type": "security" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "构造 ≠ 发送",
+      "items": [
+        "包对象先是内存里的字段树，show() 看到的每层都是它",
+        "序列化时才定型长度并计算校验和（构造时是 None）",
+        "真正出门由内核与网卡完成，需要 root 与真实接口"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "为什么抓包要特权",
+      "items": [
+        "/dev/bpf 是特权设备：能看见流过网卡的所有帧",
+        "抓「自己发的流量」也占用同一条 BPF 通道",
+        "未授权抓包=窃听，授权边界先于技术学习"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "两种「在线」问法",
+      "items": [
+        "ARP who-has 在二层：绕过 IP 层过滤，谁答谁在",
+        "ICMP echo 在三层：可能被防火墙静默丢弃",
+        "ARP 与 ICMP 都复核过的，才是可信的资产清单"
+      ]
+    }
+  ]
+}

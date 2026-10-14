@@ -1,0 +1,166 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "爆破的减速带：无防护 0.4 秒即破，token+sleep+锁定全拦",
+    "output": "brute_lab.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "lanes": [
+    {
+      "id": "flow",
+      "label": "攻击链"
+    },
+    {
+      "id": "defense",
+      "label": "防线",
+      "variant": "exception"
+    }
+  ],
+  "phases": [
+    {
+      "id": "gradient",
+      "label": "三道减速带",
+      "fromCol": 1,
+      "toCol": 4,
+      "variant": "emphasis"
+    },
+    {
+      "id": "fix",
+      "label": "正解",
+      "fromCol": 5,
+      "toCol": 5,
+      "variant": "dashed"
+    }
+  ],
+  "mainPath": ["dict", "low", "med", "high", "imp", "fix"],
+  "nodes": [
+    {
+      "id": "dict",
+      "lane": "flow",
+      "col": 0,
+      "type": "security",
+      "label": "会话 + 字典",
+      "sublabel": "100 条 · 第 87 条正确",
+      "width": 150
+    },
+    {
+      "id": "low",
+      "lane": "flow",
+      "col": 1,
+      "type": "backend",
+      "label": "low：无减速",
+      "sublabel": "多线程直打命中",
+      "width": 150,
+      "tag": "① 秒破"
+    },
+    {
+      "id": "med",
+      "lane": "flow",
+      "col": 2,
+      "type": "backend",
+      "label": "medium：罚站",
+      "sublabel": "失败先 sleep(2)",
+      "width": 150,
+      "tag": "② 拖慢"
+    },
+    {
+      "id": "high",
+      "lane": "flow",
+      "col": 3,
+      "type": "backend",
+      "label": "high：token 每轮",
+      "sublabel": "每请求先读页面",
+      "width": 150,
+      "tag": "③ 抬成本"
+    },
+    {
+      "id": "imp",
+      "lane": "flow",
+      "col": 4,
+      "type": "backend",
+      "label": "impossible：锁定",
+      "sublabel": "3 次失败锁 15 分钟",
+      "width": 170,
+      "tag": "④ 拦死"
+    },
+    {
+      "id": "fix",
+      "lane": "defense",
+      "col": 5,
+      "type": "security",
+      "label": "正解：限速 + 锁定",
+      "sublabel": "再加监控告警",
+      "width": 150,
+      "tag": "本实验即演示"
+    }
+  ],
+  "edges": [
+    {
+      "id": "dict-low",
+      "from": "dict",
+      "to": "low",
+      "label": "直接开打",
+      "variant": "emphasis"
+    },
+    {
+      "id": "low-med",
+      "from": "low",
+      "to": "med",
+      "label": "加 sleep",
+      "variant": "dashed"
+    },
+    {
+      "id": "med-high",
+      "from": "med",
+      "to": "high",
+      "label": "加 token",
+      "variant": "dashed"
+    },
+    {
+      "id": "high-imp",
+      "from": "high",
+      "to": "imp",
+      "label": "加锁定",
+      "variant": "dashed"
+    },
+    {
+      "id": "imp-fix",
+      "from": "imp",
+      "to": "fix",
+      "label": "连正确口令都拦",
+      "variant": "security",
+      "role": "return"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "爆破的成本账",
+      "items": [
+        "无防护：本机 100 条 0.4 秒——字典放大到十万条也只是几分钟",
+        "只加 sleep：拖慢但拦不死（多线程 + 多来源分摊延迟）",
+        "锁定：3 次失败锁 15 分钟——字典再全也打不进"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "token 的真实作用",
+      "items": [
+        "拦的是「不读页面直接怼接口」的自动化——每轮必须先解析令牌",
+        "单独用只是抬成本：脚本两行就能适配——但它逼慢了你",
+        "token + sleep + 锁定的组合才是完整防线"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "会话固定与修复",
+      "items": [
+        "本栈登录前后 PHPSESSID 未轮换——先植入已知 ID 即可复用登录后会话",
+        "修复一行：登录成功时重新生成会话 ID",
+        "会话安全三件套：HttpOnly、Secure、登录时轮换"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "JWT 攻击面 vs 三种验签实现：一条正路，两条翻车线",
+    "output": "jwt_lab.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [
+      1040,
+      560
+    ]
+  },
+  "stages": [
+    {
+      "label": "攻击手段"
+    },
+    {
+      "label": "靶站验签实现"
+    },
+    {
+      "label": "判定"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "a_none",
+      "type": "security",
+      "label": "none 伪造",
+      "sublabel": "签名段留空",
+      "stage": 0,
+      "row": 0,
+      "width": 150
+    },
+    {
+      "id": "a_brute",
+      "type": "security",
+      "label": "弱密钥爆破",
+      "sublabel": "离线验签猜密钥",
+      "stage": 0,
+      "row": 1,
+      "width": 150
+    },
+    {
+      "id": "a_confuse",
+      "type": "security",
+      "label": "算法混淆",
+      "sublabel": "公钥当 HMAC 密钥",
+      "stage": 0,
+      "row": 2,
+      "width": 150
+    },
+    {
+      "id": "v_vuln",
+      "type": "backend",
+      "label": "信任 header alg",
+      "sublabel": "token 自称什么就按什么验",
+      "stage": 1,
+      "row": 0,
+      "tag": "漏洞实现",
+      "width": 150
+    },
+    {
+      "id": "v_weak",
+      "type": "backend",
+      "label": "HS256 弱密钥",
+      "sublabel": "secret 三个字母起跳",
+      "stage": 1,
+      "row": 1,
+      "tag": "弱实现",
+      "width": 150
+    },
+    {
+      "id": "v_strong",
+      "type": "backend",
+      "label": "白名单 + RS256",
+      "sublabel": "算法写死在服务端",
+      "stage": 1,
+      "row": 2,
+      "tag": "正规实现",
+      "width": 150
+    },
+    {
+      "id": "r_open",
+      "type": "frontend",
+      "label": "攻破 200",
+      "sublabel": "flag 到手",
+      "stage": 2,
+      "row": 0,
+      "width": 150
+    },
+    {
+      "id": "r_crack",
+      "type": "frontend",
+      "label": "密钥=secret",
+      "sublabel": "字典一击即中",
+      "stage": 2,
+      "row": 1,
+      "width": 150
+    },
+    {
+      "id": "r_reject",
+      "type": "security",
+      "label": "三连拒 401",
+      "sublabel": "攻面全关",
+      "stage": 2,
+      "row": 2,
+      "width": 150
+    }
+  ],
+  "flows": [
+    {
+      "from": "a_none",
+      "to": "v_vuln",
+      "label": "JWT",
+      "classification": "200 放行",
+      "variant": "emphasis",
+      "route": "straight"
+    },
+    {
+      "from": "v_vuln",
+      "to": "r_open",
+      "label": "跳过验签",
+      "classification": "漏洞兑现",
+      "variant": "emphasis",
+      "route": "straight"
+    },
+    {
+      "from": "a_brute",
+      "to": "v_weak",
+      "label": "18 词字典",
+      "classification": "0.00s 命中",
+      "variant": "emphasis",
+      "route": "straight"
+    },
+    {
+      "from": "v_weak",
+      "to": "r_crack",
+      "label": "等效无锁",
+      "classification": "6 字符纯小写",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelDy": -40
+    },
+    {
+      "from": "a_confuse",
+      "to": "v_strong",
+      "label": "HMAC 伪造",
+      "classification": "InvalidAlgorithm",
+      "variant": "security",
+      "route": "straight",
+      "labelDy": -40
+    },
+    {
+      "from": "v_strong",
+      "to": "r_reject",
+      "label": "白名单拦截",
+      "classification": "非对称兜底",
+      "variant": "emphasis",
+      "route": "straight"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "先读懂三段结构",
+      "items": [
+        "header 是「自称」、payload 只是明文、signature 才是证据",
+        "验证方永远不能相信 header 自称的算法——这是 vuln 靶的教训"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "三种翻车方式",
+      "items": [
+        "none：把「没有签名」也当合法签名",
+        "弱密钥：HS256 的秘密短到字典可枚举，离线爆破零成本",
+        "算法混淆：拿公开的公钥当 HMAC 密钥赌实现"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "正路三件套",
+      "items": [
+        "算法白名单写在服务端；密钥足够长且随机",
+        "能用非对称（RS256）就用——公钥公开也不怕",
+        "认证通过 ≠ 授权通过：角色要单独校验"
+      ]
+    }
+  ]
+}

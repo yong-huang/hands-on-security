@@ -1,0 +1,219 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "口令破解流水线：字典 × 规则 × 哈希成本",
+    "output": "hash_cracker.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "lanes": [
+    {
+      "id": "tool",
+      "label": "破解器"
+    },
+    {
+      "id": "algo",
+      "label": "哈希算法层"
+    },
+    {
+      "id": "edge",
+      "label": "未破项与边界",
+      "variant": "exception"
+    }
+  ],
+  "phases": [
+    {
+      "id": "prepare",
+      "label": "准备候选",
+      "fromCol": 0,
+      "toCol": 1
+    },
+    {
+      "id": "eval",
+      "label": "求值与比对",
+      "fromCol": 2,
+      "toCol": 4,
+      "variant": "emphasis"
+    },
+    {
+      "id": "report",
+      "label": "报告",
+      "fromCol": 5,
+      "toCol": 5,
+      "variant": "dashed"
+    }
+  ],
+  "mainPath": [
+    "word",
+    "rules",
+    "cand",
+    "fast",
+    "match",
+    "report"
+  ],
+  "nodes": [
+    {
+      "id": "word",
+      "lane": "tool",
+      "col": 0,
+      "type": "database",
+      "label": "字典",
+      "sublabel": "25 个常见口令",
+      "width": 138
+    },
+    {
+      "id": "rules",
+      "lane": "tool",
+      "col": 1,
+      "type": "backend",
+      "label": "规则变换",
+      "sublabel": "大小写 · 尾数字 · 符号",
+      "width": 138
+    },
+    {
+      "id": "cand",
+      "lane": "tool",
+      "col": 2,
+      "type": "messagebus",
+      "label": "候选流",
+      "sublabel": "25 → 450 条",
+      "width": 138
+    },
+    {
+      "id": "fast",
+      "lane": "algo",
+      "col": 3,
+      "type": "backend",
+      "label": "快哈希",
+      "sublabel": "MD5 / SHA1 / SHA256",
+      "tag": "µs 级",
+      "width": 138
+    },
+    {
+      "id": "slow",
+      "lane": "edge",
+      "col": 3,
+      "type": "security",
+      "label": "慢哈希",
+      "sublabel": "bcrypt cost=12",
+      "tag": "数千倍",
+      "width": 138
+    },
+    {
+      "id": "match",
+      "lane": "tool",
+      "col": 4,
+      "type": "security",
+      "label": "比对命中",
+      "sublabel": "等值查目标表",
+      "width": 138
+    },
+    {
+      "id": "report",
+      "lane": "tool",
+      "col": 5,
+      "type": "frontend",
+      "label": "破解报告",
+      "sublabel": "明文 + 耗时 + 未破项",
+      "width": 138
+    },
+    {
+      "id": "miss",
+      "lane": "edge",
+      "col": 4,
+      "type": "security",
+      "label": "未破目标",
+      "sublabel": "留给更大字典 / 掩码",
+      "width": 138
+    }
+  ],
+  "edges": [
+    {
+      "id": "word-rules",
+      "from": "word",
+      "to": "rules",
+      "label": "逐词展开",
+      "variant": "emphasis"
+    },
+    {
+      "id": "rules-cand",
+      "from": "rules",
+      "to": "cand",
+      "label": "追加变形",
+      "variant": "emphasis"
+    },
+    {
+      "id": "cand-fast",
+      "from": "cand",
+      "to": "fast",
+      "label": "逐候选求哈希",
+      "variant": "emphasis"
+    },
+    {
+      "id": "cand-slow",
+      "from": "cand",
+      "to": "slow",
+      "label": "同一批候选",
+      "variant": "dashed"
+    },
+    {
+      "id": "fast-match",
+      "from": "fast",
+      "to": "match",
+      "label": "命中或继续",
+      "variant": "emphasis"
+    },
+    {
+      "id": "slow-miss",
+      "from": "slow",
+      "to": "miss",
+      "label": "成本不划算",
+      "variant": "security",
+      "role": "error"
+    },
+    {
+      "id": "match-report",
+      "from": "match",
+      "to": "report",
+      "label": "明文 + 证据",
+      "variant": "emphasis"
+    },
+    {
+      "id": "match-miss",
+      "from": "match",
+      "to": "miss",
+      "label": "候选耗尽",
+      "variant": "default"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "规则把字典放大 18 倍",
+      "items": [
+        "无规则 8/10 → 开规则 10/10：差额是 Password1 与 MONKEY",
+        "规则来自真实泄漏统计：首字母大写 + 尾数字最常见",
+        "字典质量比算力更决定成败"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "快慢哈希是本质差距",
+      "items": [
+        "MD5 微秒级、bcrypt(cost=12) 百毫秒级（实测相差数千倍）",
+        "cost 每 +1 耗时翻倍，攻击成本同步翻倍",
+        "加盐让「彩虹表」整表失效，只能逐候选硬算"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "防御视角",
+      "items": [
+        "存储口令只用慢哈希（bcrypt/argon2），配上足够长的口令",
+        "注册与改密时先过弱口令黑名单，把 123456 挡在门外",
+        "破解器是防御的自检工具：定期对自己的库跑一遍这个流程"
+      ]
+    }
+  ]
+}

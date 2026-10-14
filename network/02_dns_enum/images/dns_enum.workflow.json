@@ -1,0 +1,66 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "DNS 信息收集：字典枚举、记录查询与 AXFR 区域传送",
+    "output": "dns_enum.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "lanes": [
+    { "id": "tool", "label": "本地枚举器" },
+    { "id": "server", "label": "权威测试域 lab.local" },
+    { "id": "exception", "label": "真实环境（跨域路径）", "variant": "exception" }
+  ],
+  "phases": [
+    { "id": "enum", "label": "字典枚举", "fromCol": 0, "toCol": 1 },
+    { "id": "query", "label": "记录查询", "fromCol": 2, "toCol": 2, "variant": "emphasis" },
+    { "id": "axfr", "label": "区域传送", "fromCol": 3, "toCol": 4, "variant": "dashed" }
+  ],
+  "nodes": [
+    { "id": "dict", "lane": "tool", "col": 0, "type": "database", "label": "内置字典", "sublabel": "25 个常见子域", "width": 132 },
+    { "id": "probe", "lane": "tool", "col": 1, "type": "backend", "label": "并发探测", "sublabel": "A → CNAME 链解析", "width": 132 },
+    { "id": "table", "lane": "tool", "col": 2, "type": "frontend", "label": "命中表", "sublabel": "4 个 A + 1 个 CNAME", "width": 132 },
+    { "id": "axfr", "lane": "tool", "col": 3, "type": "messagebus", "label": "AXFR 尝试", "sublabel": "TCP 53 直连 NS", "width": 132 },
+    { "id": "serve", "lane": "server", "col": 2, "type": "cloud", "label": "测试域服务器", "sublabel": "127.0.0.1:5300", "tag": "auth-zone", "width": 132 },
+    { "id": "dump", "lane": "tool", "col": 4, "type": "database", "label": "全量记录", "sublabel": "10 条一次拿全", "width": 132 },
+    { "id": "deny", "lane": "exception", "col": 4, "type": "security", "label": "TransferError", "sublabel": "公网服务器常态", "width": 132 }
+  ],
+  "edges": [
+    { "id": "dict-probe", "from": "dict", "to": "probe" },
+    { "id": "probe-serve", "from": "probe", "to": "serve", "label": "25 × A/CNAME", "variant": "emphasis" },
+    { "id": "serve-table", "from": "serve", "to": "table", "label": "A/CNAME 应答", "variant": "emphasis", "role": "return" },
+    { "id": "axfr-serve", "from": "axfr", "to": "serve", "label": "AXFR 请求", "variant": "default" },
+    { "id": "serve-dump", "from": "serve", "to": "dump", "label": "传送成功（本靶场）", "variant": "emphasis", "role": "return" },
+    { "id": "serve-deny", "from": "serve", "to": "deny", "label": "拒绝（真实环境）", "variant": "security", "role": "error" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "三类数据源",
+      "items": [
+        "字典枚举：覆盖率取决于字典质量",
+        "apex 记录：NS / MX / TXT 直接问",
+        "AXFR：配置失误时一次拿全"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "AXFR 的真相",
+      "items": [
+        "本是主从同步的正常功能，无认证",
+        "只靠服务端 IP 白名单防守",
+        "公网实测 TransferError，拒绝才是常态"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "记录类型速查",
+      "items": [
+        "A：地址线索；CNAME：别名链",
+        "MX：邮件路由；TXT：SPF / 域验证",
+        "NS：权威服务器名单"
+      ]
+    }
+  ]
+}

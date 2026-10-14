@@ -1,0 +1,190 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "两条「借位」链：CSRF 借受害者的会话，SSRF 借服务端的网络位置",
+    "output": "csrf_ssrf_lab.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "column_fit": "spread",
+    "viewBox": [
+      1060,
+      560
+    ]
+  },
+  "participants": [
+    {
+      "id": "victim",
+      "type": "frontend",
+      "label": "受害者浏览器",
+      "sublabel": "已登录 DVWA，带着会话 cookie"
+    },
+    {
+      "id": "evil",
+      "type": "security",
+      "label": "攻击页 :8601",
+      "sublabel": "自动提交隐藏表单"
+    },
+    {
+      "id": "dvwa",
+      "type": "backend",
+      "label": "DVWA :8080",
+      "sublabel": "改密端点"
+    },
+    {
+      "id": "attacker",
+      "type": "security",
+      "label": "攻击者脚本",
+      "sublabel": "只发一个 /fetch"
+    },
+    {
+      "id": "target",
+      "type": "frontend",
+      "label": "SSRF 靶 :8602",
+      "sublabel": "代取任意 URL"
+    },
+    {
+      "id": "intra",
+      "type": "database",
+      "label": "内网与本地",
+      "sublabel": "127.0.0.1:3306 / file://"
+    }
+  ],
+  "segments": [
+    {
+      "from": 152,
+      "to": 306,
+      "label": "CSRF：借受害者的会话"
+    },
+    {
+      "from": 336,
+      "to": 484,
+      "label": "SSRF：借服务端的网络位置"
+    }
+  ],
+  "messages": [
+    {
+      "from": "victim",
+      "to": "evil",
+      "y": 176,
+      "label": "点开诱导页（一张「免费壁纸」）",
+      "variant": "emphasis"
+    },
+    {
+      "from": "evil",
+      "to": "victim",
+      "y": 213,
+      "label": "返回自动提交表单的页面",
+      "variant": "dashed"
+    },
+    {
+      "from": "victim",
+      "to": "dvwa",
+      "y": 251,
+      "label": "GET 改密请求——浏览器自动附上会话 cookie",
+      "variant": "emphasis"
+    },
+    {
+      "from": "dvwa",
+      "to": "victim",
+      "y": 290,
+      "label": "Password Changed.（密码被改走）",
+      "variant": "return"
+    },
+    {
+      "from": "attacker",
+      "to": "target",
+      "y": 358,
+      "label": "GET /fetch?url=127.0.0.1:3306",
+      "variant": "emphasis"
+    },
+    {
+      "from": "target",
+      "to": "intra",
+      "y": 396,
+      "label": "服务端代为连接 / 读文件",
+      "variant": "emphasis"
+    },
+    {
+      "from": "intra",
+      "to": "target",
+      "y": 434,
+      "label": "握手字节 / /etc/passwd 内容",
+      "variant": "return"
+    },
+    {
+      "from": "target",
+      "to": "attacker",
+      "y": 472,
+      "label": "原样转交响应（盲信道）",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "victim",
+      "from": 165,
+      "to": 298,
+      "type": "frontend"
+    },
+    {
+      "participant": "evil",
+      "from": 168,
+      "to": 220,
+      "type": "security"
+    },
+    {
+      "participant": "dvwa",
+      "from": 242,
+      "to": 298,
+      "type": "backend"
+    },
+    {
+      "participant": "attacker",
+      "from": 350,
+      "to": 480,
+      "type": "security"
+    },
+    {
+      "participant": "target",
+      "from": 352,
+      "to": 480,
+      "type": "frontend"
+    },
+    {
+      "participant": "intra",
+      "from": 388,
+      "to": 442,
+      "type": "database"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "CSRF 为什么成立",
+      "items": [
+        "受害者已登录——浏览器里躺着会话 cookie",
+        "攻击页只需要一个表单：跨站提交也会自动带 cookie",
+        "同源策略防「读」，不防「写」——请求照样发得出去"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "referer 检查 vs token",
+      "items": [
+        "medium 比 Referer：攻击者能声明 referrer-policy、把要的子串放进自己 URL 路径",
+        "high 要 user_token：每会话随机的凭证，不读页面就猜不出",
+        "结论：让请求「自证读过页面」（token），而不是「听浏览器转述」（referer）"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "SSRF 的危害与修复",
+      "items": [
+        "探内网：响应形态/时间/长度差异就是端口扫描（3306 握手脚印）",
+        "绕边界：file:// 读本地文件；云环境里直达 metadata 凭证",
+        "修复：协议与地址白名单、禁重定向跨段、出站流量审计"
+      ]
+    }
+  ]
+}

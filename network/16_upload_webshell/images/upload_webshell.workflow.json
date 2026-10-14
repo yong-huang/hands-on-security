@@ -1,0 +1,164 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "三类校验、三套绕过：上传的文件「被信」在哪一步",
+    "output": "upload_webshell.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "lanes": [
+    {
+      "id": "flow",
+      "label": "上传链"
+    },
+    {
+      "id": "defense",
+      "label": "防线",
+      "variant": "exception"
+    }
+  ],
+  "phases": [
+    {
+      "id": "checks",
+      "label": "三类校验，三套绕过",
+      "fromCol": 0,
+      "toCol": 2,
+      "variant": "emphasis"
+    },
+    {
+      "id": "exec",
+      "label": "执行",
+      "fromCol": 3,
+      "toCol": 3
+    },
+    {
+      "id": "fix",
+      "label": "修复",
+      "fromCol": 4,
+      "toCol": 4,
+      "variant": "dashed"
+    }
+  ],
+  "mainPath": [
+    "low",
+    "med",
+    "high",
+    "inc",
+    "fix"
+  ],
+  "nodes": [
+    {
+      "id": "low",
+      "lane": "flow",
+      "col": 0,
+      "type": "backend",
+      "label": "low：无校验",
+      "sublabel": "不查任何东西：原样落地",
+      "width": 150,
+      "tag": "① 裸奔"
+    },
+    {
+      "id": "med",
+      "lane": "flow",
+      "col": 1,
+      "type": "backend",
+      "label": "medium：信自称 MIME",
+      "sublabel": "改 Content-Type 即过",
+      "width": 150,
+      "tag": "② 声明可伪造"
+    },
+    {
+      "id": "high",
+      "lane": "flow",
+      "col": 2,
+      "type": "backend",
+      "label": "high：真图 + 白名单",
+      "sublabel": "getimagesize 验真图",
+      "width": 150,
+      "tag": "③ 内容级"
+    },
+    {
+      "id": "inc",
+      "lane": "flow",
+      "col": 3,
+      "type": "security",
+      "label": "图片马 + 文件包含",
+      "sublabel": "include 当引信",
+      "width": 150,
+      "tag": "组合拳"
+    },
+    {
+      "id": "fix",
+      "lane": "defense",
+      "col": 4,
+      "type": "security",
+      "label": "修复四件套",
+      "sublabel": "白名单 · 重编码 · 随机名",
+      "width": 150,
+      "tag": "一起上"
+    }
+  ],
+  "edges": [
+    {
+      "id": "low-med",
+      "from": "low",
+      "to": "med",
+      "label": "下一关：查自称类型",
+      "variant": "dashed"
+    },
+    {
+      "id": "med-high",
+      "from": "med",
+      "to": "high",
+      "label": "下一关：验图片内容",
+      "variant": "dashed"
+    },
+    {
+      "id": "high-inc",
+      "from": "high",
+      "to": "inc",
+      "label": "图不会自己跑",
+      "variant": "emphasis"
+    },
+    {
+      "id": "inc-fix",
+      "from": "inc",
+      "to": "fix",
+      "label": "修复覆盖整条链",
+      "variant": "security",
+      "role": "return"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "三类校验各信什么",
+      "items": [
+        "上传请求三件套：内容 / 文件名 / 自称类型（MIME）——校验就在这三样里挑着看",
+        "low：什么都不查——文件直接进 Web 目录",
+        "medium：信「自称类型」（客户端声明的 MIME，随手可伪造）",
+        "high：信「真图 + 白名单扩展名」——图是真的，但图里可以埋 PHP"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "为什么要借文件包含",
+      "items": [
+        ".jpg 是被当静态资源发的，服务器不会执行它——图马是没点着的炸药",
+        "include() 会把任何文件当 PHP 解析——它就是引信",
+        "本靶场的包含点要求登录：真实战里攻击者先拿到会话/账号更常见"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "修复四件套",
+      "items": [
+        "扩展名白名单 + 服务端重编码图片（剥掉埋在里面的尾巴）",
+        "落地文件名随机化，防路径猜测",
+        "上传目录禁止脚本解析——传上来也点不着",
+        "多重校验并行，别把任何一层当唯一防线"
+      ]
+    }
+  ]
+}

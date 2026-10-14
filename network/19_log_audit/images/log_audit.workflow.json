@@ -1,0 +1,155 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "日志分拣流水线：三路日志进，规则引擎出告警与报告",
+    "output": "log_audit.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "lanes": [
+    {
+      "id": "flow",
+      "label": "审计流水线"
+    },
+    {
+      "id": "defense",
+      "label": "闭环",
+      "variant": "exception"
+    }
+  ],
+  "phases": [
+    {
+      "id": "analyze",
+      "label": "解析与规则",
+      "fromCol": 1,
+      "toCol": 2,
+      "variant": "emphasis"
+    },
+    {
+      "id": "out",
+      "label": "输出",
+      "fromCol": 3,
+      "toCol": 3
+    },
+    {
+      "id": "loop",
+      "label": "闭环",
+      "fromCol": 4,
+      "toCol": 4,
+      "variant": "dashed"
+    }
+  ],
+  "mainPath": ["sources", "parse", "rules", "out", "respond"],
+  "nodes": [
+    {
+      "id": "sources",
+      "lane": "flow",
+      "col": 0,
+      "type": "security",
+      "label": "三路日志",
+      "sublabel": "auth / access / 容器日志",
+      "width": 150
+    },
+    {
+      "id": "parse",
+      "lane": "flow",
+      "col": 1,
+      "type": "backend",
+      "label": "行解析器",
+      "sublabel": "按行识别三种格式",
+      "width": 150,
+      "tag": "自动判别"
+    },
+    {
+      "id": "rules",
+      "lane": "flow",
+      "col": 2,
+      "type": "backend",
+      "label": "规则引擎",
+      "sublabel": "窗口 + 特征规则",
+      "width": 150,
+      "tag": "R1–R6"
+    },
+    {
+      "id": "out",
+      "lane": "flow",
+      "col": 3,
+      "type": "frontend",
+      "label": "告警 + 报告",
+      "sublabel": "可疑 IP / Markdown",
+      "width": 150,
+      "tag": "可对账"
+    },
+    {
+      "id": "respond",
+      "lane": "defense",
+      "col": 4,
+      "type": "security",
+      "label": "响应与加固",
+      "sublabel": "封禁 · 复查 · 加规则",
+      "width": 150,
+      "tag": "闭环"
+    }
+  ],
+  "edges": [
+    {
+      "id": "src-parse",
+      "from": "sources",
+      "to": "parse",
+      "label": "三类事件",
+      "variant": "emphasis"
+    },
+    {
+      "id": "parse-rules",
+      "from": "parse",
+      "to": "rules",
+      "label": "结构化",
+      "variant": "emphasis"
+    },
+    {
+      "id": "rules-out",
+      "from": "rules",
+      "to": "out",
+      "label": "命中规则",
+      "variant": "emphasis"
+    },
+    {
+      "id": "out-respond",
+      "from": "out",
+      "to": "respond",
+      "label": "证据与建议",
+      "variant": "security",
+      "role": "return"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "验收的三条对账线",
+      "items": [
+        "植入检出：50 次/60s 触发 R1+R2+R3+R6（≥3 条）",
+        "统计对账：Top10 与 awk 手工统计逐条一致",
+        "实战检出：真实 DVWA 注入流量被 R3 接住"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "滑动窗口怎么算",
+      "items": [
+        "时间排序 + 双指针，O(n) 数出「任意 60 秒内最多的失败数」",
+        "阈值 30 次可调——散落失败（8 次）不告警（负对照）",
+        "窗口与阈值就是告警系统的灵敏度旋钮"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "从告警到响应",
+      "items": [
+        "报告给建议动作：封禁、复查口令强度、复核登录成功",
+        "实验 20-21 把注入/扫描特征落成 IDS 规则",
+        "日志留存与时钟同步，是审计与取证的地基"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "一次命令注入的全程：从 ip 参数到 root shell",
+    "output": "cmd_injection.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "column_fit": "spread",
+    "viewBox": [1060, 560]
+  },
+  "participants": [
+    { "id": "attacker", "type": "security", "label": "攻击者工具", "sublabel": "payload 随档位变" },
+    { "id": "exec", "type": "backend", "label": "exec 模块 :8080", "sublabel": "黑名单过滤后拼接" },
+    { "id": "shell", "type": "messagebus", "label": "系统 shell", "sublabel": "以 Web 进程身份执行" }
+  ],
+  "segments": [
+    { "from": 152, "to": 306, "label": "一次注入的全程（low 档实录）" },
+    { "from": 336, "to": 464, "label": "没有回显怎么办（外带两路）" }
+  ],
+  "messages": [
+    { "from": "attacker", "to": "exec", "y": 176, "label": "POST ip=127.0.0.1; whoami", "variant": "emphasis" },
+    { "from": "exec", "to": "shell", "y": 213, "label": "shell_exec(「ping -c 4 127.0.0.1; whoami」)", "variant": "emphasis" },
+    { "from": "shell", "to": "exec", "y": 251, "label": "ping 输出 + root", "variant": "return" },
+    { "from": "exec", "to": "attacker", "y": 291, "label": "响应 <pre>：注入命令的输出在末尾", "variant": "return" },
+    { "from": "attacker", "to": "exec", "y": 366, "label": "盲打分支：换成外带型 payload", "variant": "dashed" },
+    { "from": "shell", "to": "attacker", "y": 404, "label": "路① HTTP/DNS 外带：数据回头送", "variant": "dashed" },
+    { "from": "exec", "to": "attacker", "y": 442, "label": "路② 时间信道：sleep 0/5 的二值信号", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "attacker", "from": 165, "to": 300, "type": "security" },
+    { "participant": "exec", "from": 168, "to": 300, "type": "backend" },
+    { "participant": "shell", "from": 195, "to": 262, "type": "messagebus" },
+    { "participant": "attacker", "from": 356, "to": 452, "type": "security" },
+    { "participant": "exec", "from": 358, "to": 452, "type": "backend" },
+    { "participant": "shell", "from": 360, "to": 415, "type": "messagebus" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "三档黑名单与过法",
+      "items": [
+        "low 不过滤：分号、管道、反引号、$() 随意",
+        "medium 删 && 和 ;：| 与 & 照走，${IFS} 还能当空格",
+        "high 再删 |␣、$、( )、反引号：| 后不加空格（|whoami）即存活"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "无回显外带三路",
+      "items": [
+        "HTTP 外带：curl 把结果送回自己的接收端",
+        "DNS 外带：把数据编进域名查询里",
+        "时间信道：sleep 0/5 当 0·1 比特逐位问"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "修复：别再拼 shell",
+      "items": [
+        "输入白名单：IPv4 就该只接受 IPv4 格式",
+        "必须拼时用 escapeshellarg 参数化",
+        "Web 进程最小权限（root 是放大器）；出站审计兜底"
+      ]
+    }
+  ]
+}

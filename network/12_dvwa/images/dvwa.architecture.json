@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "DVWA 渗透工作台：宿主机、代理与容器栈",
+    "output": "dvwa.html",
+    "locale": "zh-CN",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "browser",
+      "type": "external",
+      "label": "浏览器",
+      "sublabel": "手工渗透入口",
+      "pos": [
+        60,
+        120
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "burp",
+      "type": "security",
+      "label": "Burp Suite",
+      "sublabel": "拦截 / 改包（可选）",
+      "pos": [
+        60,
+        240
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "script",
+      "type": "backend",
+      "label": "dvwa.sh",
+      "sublabel": "编排 + curl 验收",
+      "pos": [
+        60,
+        360
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "web",
+      "type": "cloud",
+      "label": "web 容器",
+      "sublabel": "php82 内置服务器",
+      "pos": [
+        420,
+        130
+      ],
+      "size": [
+        150,
+        70
+      ],
+      "tag": "8080→80"
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "db 容器",
+      "sublabel": "mysql:8.0",
+      "pos": [
+        660,
+        130
+      ],
+      "size": [
+        150,
+        70
+      ]
+    },
+    {
+      "id": "srcvol",
+      "type": "database",
+      "label": "artifacts/dvwa",
+      "sublabel": "源码卷（挂载）",
+      "pos": [
+        420,
+        320
+      ],
+      "size": [
+        150,
+        60
+      ]
+    },
+    {
+      "id": "dbvol",
+      "type": "database",
+      "label": "dvwa-db 卷",
+      "sublabel": "数据持久化",
+      "pos": [
+        660,
+        320
+      ],
+      "size": [
+        150,
+        60
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "宿主机 macOS",
+      "wraps": [
+        "browser",
+        "burp",
+        "script"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Docker Desktop · compose 栈 hosec12",
+      "wraps": [
+        "web",
+        "db",
+        "srcvol",
+        "dbvol"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "browser-burp",
+      "from": "browser",
+      "to": "burp",
+      "label": "配置代理",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        125,
+        212
+      ]
+    },
+    {
+      "id": "burp-web",
+      "from": "burp",
+      "to": "web",
+      "label": "拦截的请求",
+      "variant": "emphasis",
+      "labelAt": [
+        225,
+        320
+      ]
+    },
+    {
+      "id": "browser-web",
+      "from": "browser",
+      "to": "web",
+      "label": "HTTP :8080",
+      "variant": "emphasis"
+    },
+    {
+      "id": "script-web",
+      "from": "script",
+      "to": "web",
+      "label": "curl 验收 / setup",
+      "variant": "default",
+      "fromSide": "right",
+      "toSide": "left",
+      "labelAt": [
+        300,
+        350
+      ]
+    },
+    {
+      "id": "web-db",
+      "from": "web",
+      "to": "db",
+      "label": "mysqli :3306",
+      "variant": "emphasis"
+    },
+    {
+      "id": "web-src",
+      "from": "web",
+      "to": "srcvol",
+      "label": "执行源码",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        495,
+        262
+      ]
+    },
+    {
+      "id": "db-vol",
+      "from": "db",
+      "to": "dbvol",
+      "label": "写入",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        735,
+        262
+      ]
+    }
+  ]
+}

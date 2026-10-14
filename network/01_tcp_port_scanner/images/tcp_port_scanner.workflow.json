@@ -1,0 +1,67 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "TCP connect 扫描：多线程探测与结果分类",
+    "output": "tcp_port_scanner.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "lanes": [
+    { "id": "main", "label": "主线程" },
+    { "id": "worker", "label": "工作线程 × 100" },
+    { "id": "exception", "label": "未开放（丢弃）", "variant": "exception" }
+  ],
+  "phases": [
+    { "id": "prep", "label": "准备", "fromCol": 0, "toCol": 1 },
+    { "id": "scan", "label": "并发探测", "fromCol": 2, "toCol": 4, "variant": "emphasis" },
+    { "id": "emit", "label": "输出", "fromCol": 5, "toCol": 5, "variant": "dashed" }
+  ],
+  "mainPath": ["args", "ports", "pool", "probe", "banner", "report"],
+  "nodes": [
+    { "id": "args", "lane": "main", "col": 0, "type": "external", "label": "参数解析", "sublabel": "目标 / -p / -t", "width": 132 },
+    { "id": "ports", "lane": "main", "col": 1, "type": "backend", "label": "端口列表", "sublabel": "展开为 10000 个任务", "width": 132 },
+    { "id": "pool", "lane": "main", "col": 2, "type": "backend", "label": "线程池分发", "sublabel": "ThreadPoolExecutor", "tag": "100 线程", "width": 132 },
+    { "id": "probe", "lane": "worker", "col": 3, "type": "messagebus", "label": "connect 探测", "sublabel": "connect_ex 三次握手", "width": 132 },
+    { "id": "banner", "lane": "worker", "col": 4, "type": "database", "label": "banner 抓取", "sublabel": "被动 recv / 主动 HEAD", "width": 132 },
+    { "id": "report", "lane": "main", "col": 5, "type": "frontend", "label": "结果汇总", "sublabel": "开放端口 + banner + 耗时", "width": 132 },
+    { "id": "drop", "lane": "exception", "col": 4, "type": "security", "label": "未开放丢弃", "sublabel": "closed 秒回 / filtered 超时", "width": 132 }
+  ],
+  "edges": [
+    { "id": "args-ports", "from": "args", "to": "ports" },
+    { "id": "ports-pool", "from": "ports", "to": "pool" },
+    { "id": "pool-probe", "from": "pool", "to": "probe" },
+    { "id": "probe-banner", "from": "probe", "to": "banner", "label": "open", "variant": "emphasis" },
+    { "id": "probe-drop", "from": "probe", "to": "drop", "label": "closed / filtered", "variant": "security", "role": "error" },
+    { "id": "banner-report", "from": "banner", "to": "report", "label": "实时打印", "variant": "emphasis", "role": "return" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "三种判定",
+      "items": [
+        "open：三次握手完成，带着 banner 进入结果集",
+        "closed：对方回 RST，秒回拒绝",
+        "filtered：无响应等到超时 —— 后两者都丢弃"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "为什么快",
+      "items": [
+        "100 个工作线程并发等待网络响应",
+        "等待期间 Python 释放 GIL",
+        "10000 个端口实测 0.9 秒"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "限速的意义",
+      "items": [
+        "--rate 把全局探测压到设定速率",
+        "避免打满对方连接表",
+        "降低被 IDS 标记的概率"
+      ]
+    }
+  ]
+}

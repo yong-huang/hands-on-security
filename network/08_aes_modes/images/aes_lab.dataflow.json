@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "同一只企鹅，两条加密路：ECB 泄漏轮廓，CBC 打散成噪声",
+    "output": "aes_lab.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [
+      1080,
+      520
+    ]
+  },
+  "stages": [
+    {
+      "label": "同一明文"
+    },
+    {
+      "label": "两种模式"
+    },
+    {
+      "label": "密文世界"
+    },
+    {
+      "label": "边界"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "plain",
+      "type": "database",
+      "label": "企鹅像素",
+      "sublabel": "108 KB · 大量同色块",
+      "stage": 0,
+      "row": 1,
+      "tag": "190×190"
+    },
+    {
+      "id": "ecb",
+      "type": "backend",
+      "label": "ECB 逐块独立",
+      "sublabel": "同明文块 → 同密文块",
+      "stage": 1,
+      "row": 0,
+      "tag": "无 IV"
+    },
+    {
+      "id": "cbc",
+      "type": "backend",
+      "label": "CBC 链式",
+      "sublabel": "前块密文参与后块",
+      "stage": 1,
+      "row": 2,
+      "tag": "随机 IV"
+    },
+    {
+      "id": "out_ecb",
+      "type": "frontend",
+      "label": "密文重复块 6552",
+      "sublabel": "轮廓清晰可辨",
+      "stage": 2,
+      "row": 0,
+      "tag": "泄漏"
+    },
+    {
+      "id": "out_cbc",
+      "type": "frontend",
+      "label": "密文重复块 0",
+      "sublabel": "全图噪声",
+      "stage": 2,
+      "row": 2,
+      "tag": "打散"
+    },
+    {
+      "id": "leak",
+      "type": "security",
+      "label": "确定性可统计",
+      "sublabel": "彩虹表 / 比对攻击的温床",
+      "stage": 3,
+      "row": 0
+    },
+    {
+      "id": "safe",
+      "type": "security",
+      "label": "随机性 + 链式",
+      "sublabel": "重复模式消失",
+      "stage": 3,
+      "row": 2
+    }
+  ],
+  "flows": [
+    {
+      "from": "plain",
+      "to": "ecb",
+      "label": "同一块反复出现",
+      "classification": "模式泄漏的燃料",
+      "variant": "emphasis",
+      "route": "vertical-channel",
+      "labelDy": -20
+    },
+    {
+      "from": "plain",
+      "to": "cbc",
+      "label": "同一份像素",
+      "classification": "链式处理",
+      "variant": "emphasis",
+      "route": "vertical-channel"
+    },
+    {
+      "from": "ecb",
+      "to": "out_ecb",
+      "label": "块密文 = f(块明文)",
+      "classification": "块间无关",
+      "variant": "emphasis",
+      "route": "straight"
+    },
+    {
+      "from": "cbc",
+      "to": "out_cbc",
+      "label": "异或前块密文",
+      "classification": "块间纠缠",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelDy": -34
+    },
+    {
+      "from": "out_ecb",
+      "to": "leak",
+      "label": "统计 + 比对",
+      "classification": "选择 ECB 的代价",
+      "variant": "security",
+      "route": "straight"
+    },
+    {
+      "from": "out_cbc",
+      "to": "safe",
+      "label": "打散",
+      "classification": "推荐姿势",
+      "variant": "default",
+      "route": "straight"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "ECB 为什么不能用",
+      "items": [
+        "逐块独立：相同明文块永远得到相同密文块",
+        "图像/文档/结构化数据里大量重复块，轮廓直接泄漏",
+        "同理：确定性加密可被统计比对，弱口令可被彩虹表命中"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "CBC 的关键在 IV",
+      "items": [
+        "随机 IV 让同一明文两次加密结果不同（实测一致：否）",
+        "IV 不必保密，但必须随机且每次唯一——复用 IV 会重新引入可预测性",
+        "链式把重复打散，密文重复块从 6552 降到 0"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "保密之外还要完整性",
+      "items": [
+        "CBC/ECB 只管保密，密文被改无法察觉——要认证就上 GCM",
+        "GCM 附 16 字节标签：改 1 个字节解密即抛 InvalidTag",
+        "选型口诀：新系统默认 AES-GCM；IV/nonce 永不复用"
+      ]
+    }
+  ]
+}

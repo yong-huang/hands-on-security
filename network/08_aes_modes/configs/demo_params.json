@@ -1,0 +1,10 @@
+{
+  "description": "演示参数：固定示例密钥（仅用于本地教学；真实系统密钥必须随机生成并安全保存）。图像为手绘企鹅——大面积同色区域是演示 ECB 弱点的最佳素材。",
+  "demo_key_hex": "00112233445566778899aabbccddeeff",
+  "image": {
+    "size": 190,
+    "background_rgb": [245, 245, 245]
+  },
+  "gcm_nonce_bytes": 12,
+  "gcm_tag_bytes": 16
+}

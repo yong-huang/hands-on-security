@@ -1,0 +1,215 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "混合加密信封：AES 搬数据，RSA 送钥匙",
+    "output": "rsa_lab.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [
+      1068,
+      560
+    ]
+  },
+  "stages": [
+    {
+      "label": "明文与钥匙"
+    },
+    {
+      "label": "加密层"
+    },
+    {
+      "label": "信封文件"
+    },
+    {
+      "label": "解密层"
+    },
+    {
+      "label": "校验"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "file",
+      "type": "database",
+      "label": "1MB 样本",
+      "sublabel": "要保护的数据",
+      "stage": 0,
+      "row": 0,
+      "width": 150
+    },
+    {
+      "id": "akey",
+      "type": "security",
+      "label": "会话密钥",
+      "sublabel": "AES-256 · 随机一次性",
+      "stage": 0,
+      "row": 2,
+      "tag": "32B",
+      "width": 150
+    },
+    {
+      "id": "aes",
+      "type": "backend",
+      "label": "AES-256-GCM",
+      "sublabel": "快：搬数据",
+      "stage": 1,
+      "row": 0,
+      "width": 150
+    },
+    {
+      "id": "wrap",
+      "type": "security",
+      "label": "RSA-OAEP 封装",
+      "sublabel": "慢：只加密钥",
+      "stage": 1,
+      "row": 2,
+      "tag": "256B",
+      "width": 150
+    },
+    {
+      "id": "env",
+      "type": "database",
+      "label": "envelope.bin",
+      "sublabel": "头 + 封装密钥 + nonce + 密文",
+      "stage": 2,
+      "row": 1,
+      "tag": "两段都防篡改",
+      "width": 150
+    },
+    {
+      "id": "gcm",
+      "type": "backend",
+      "label": "GCM 解密",
+      "sublabel": "标签校验 + 还原",
+      "stage": 3,
+      "row": 0,
+      "width": 150
+    },
+    {
+      "id": "unwrap",
+      "type": "security",
+      "label": "私钥解封",
+      "sublabel": "OAEP 填充校验",
+      "stage": 3,
+      "row": 2,
+      "width": 150
+    },
+    {
+      "id": "out",
+      "type": "frontend",
+      "label": "还原文件",
+      "sublabel": "与原文逐字节一致",
+      "stage": 4,
+      "row": 1,
+      "tag": "sha256 相同",
+      "width": 150
+    }
+  ],
+  "flows": [
+    {
+      "from": "file",
+      "to": "aes",
+      "label": "1MB 明文",
+      "classification": "快通道",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelDy": -26
+    },
+    {
+      "from": "akey",
+      "to": "aes",
+      "label": "数据钥匙",
+      "classification": "对称",
+      "variant": "emphasis",
+      "route": "vertical-channel",
+      "labelDx": 30
+    },
+    {
+      "from": "akey",
+      "to": "wrap",
+      "label": "同一把钥匙",
+      "classification": "非对称",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelDy": 26
+    },
+    {
+      "from": "aes",
+      "to": "env",
+      "label": "密文段 + 16B 标签",
+      "classification": "GCM",
+      "variant": "emphasis",
+      "route": "vertical-channel"
+    },
+    {
+      "from": "wrap",
+      "to": "env",
+      "label": "密钥段",
+      "classification": "OAEP",
+      "variant": "emphasis",
+      "route": "vertical-channel"
+    },
+    {
+      "from": "env",
+      "to": "gcm",
+      "label": "数据段",
+      "classification": "先验标签",
+      "variant": "default",
+      "route": "vertical-channel"
+    },
+    {
+      "from": "env",
+      "to": "unwrap",
+      "label": "密钥段",
+      "classification": "先验填充",
+      "variant": "default",
+      "route": "vertical-channel"
+    },
+    {
+      "from": "unwrap",
+      "to": "gcm",
+      "label": "还原的钥匙",
+      "classification": "闭环",
+      "variant": "default",
+      "route": "vertical-channel"
+    },
+    {
+      "from": "gcm",
+      "to": "out",
+      "label": "明文",
+      "classification": "逐字节一致",
+      "variant": "emphasis",
+      "route": "vertical-channel"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "为什么必须混合",
+      "items": [
+        "RSA 2048 位单次只能加密小段数据（OAEP 上限约 190 字节），且慢",
+        "AES 快（每秒 GB 级）但需要双方共享同一把钥匙",
+        "信封解：RSA 送钥匙、AES 搬数据——HTTPS、文件加密都这么干"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "教材版为什么危险",
+      "items": [
+        "确定性 + 同态性：同文同密可被比对，E(2)·E(3) 还等于 E(6)",
+        "OAEP 随机填充一次解决两个问题：不可预测、不可拼接",
+        "「数学正确」不等于「安全」——填充是安全规范的一部分"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "篡改的两道闸",
+      "items": [
+        "数据段改 1 字节 → GCM 标签 InvalidTag",
+        "密钥段改 1 字节 → OAEP 解封直接失败",
+        "完整性不是可选项：解密成功但明文被换过，比失败更可怕"
+      ]
+    }
+  ]
+}

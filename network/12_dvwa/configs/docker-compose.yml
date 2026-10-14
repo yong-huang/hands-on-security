@@ -1,0 +1,36 @@
+# 实验 12 · DVWA 靶场栈：web（alpine + php82 内置服务器，见 web.Dockerfile）
+#                       + db（mysql:8.0，本机已有镜像）
+# 用法一律带项目名，避免碰到机器上其他容器：
+#   docker compose -p hosec12 -f configs/docker-compose.yml up -d --build
+services:
+  db:
+    image: mysql:8.0                  # 本机已有（arm64），无需再拉取
+    command: --default-time-zone=+08:00   # 与 web 的 PHP 时区对齐（实验 17 的锁定计时依赖两者一致）
+    environment:
+      MYSQL_ROOT_PASSWORD: p@ssw0rd
+      MYSQL_DATABASE: dvwa
+    ports:
+      - "127.0.0.1:3306:3306"         # 仅回环：供实验 15 的 SSRF 从宿主探测 3306
+    volumes:
+      - dvwa-db:/var/lib/mysql
+    healthcheck:                      # web 等 db 健康后再起，避免首启竞态
+      test: ["CMD-SHELL", "mysqladmin ping -h127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 3s
+      timeout: 3s
+      retries: 60
+
+  web:
+    build:
+      context: ..
+      dockerfile: configs/web.Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:80"                     # 浏览器与 Burp 都从这里进
+    volumes:
+      - ../artifacts/dvwa:/var/www/html                 # DVWA 源码（从官方镜像抽取）
+      - ../artifacts/config.inc.php:/var/www/html/config/config.inc.php:ro
+
+volumes:
+  dvwa-db:

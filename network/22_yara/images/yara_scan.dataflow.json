@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "扫描流水线：目录进，三条规则筛，报告出",
+    "output": "yara_scan.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [
+      1080,
+      560
+    ]
+  },
+  "stages": [
+    {
+      "label": "输入"
+    },
+    {
+      "label": "遍历与降噪"
+    },
+    {
+      "label": "规则匹配"
+    },
+    {
+      "label": "输出"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "samples",
+      "type": "database",
+      "label": "样本目录",
+      "sublabel": "10 个自造文件",
+      "stage": 0,
+      "row": 0,
+      "width": 150,
+      "tag": "3 恶意"
+    },
+    {
+      "id": "whitelist",
+      "type": "database",
+      "label": "白名单",
+      "sublabel": "路径子串清单",
+      "stage": 0,
+      "row": 2,
+      "width": 150,
+      "tag": "1 条"
+    },
+    {
+      "id": "walk",
+      "type": "backend",
+      "label": "递归遍历",
+      "sublabel": "白名单跳过，其余送检",
+      "stage": 1,
+      "row": 1,
+      "width": 150
+    },
+    {
+      "id": "rules",
+      "type": "backend",
+      "label": "三条规则",
+      "sublabel": "EICAR · 组合 · IP 端点",
+      "stage": 2,
+      "row": 1,
+      "width": 150,
+      "tag": "3 条"
+    },
+    {
+      "id": "report",
+      "type": "security",
+      "label": "命中报告",
+      "sublabel": "规则 / 文件 / 偏移",
+      "stage": 3,
+      "row": 1,
+      "width": 150,
+      "tag": "JSON 可对账"
+    }
+  ],
+  "flows": [
+    {
+      "from": "samples",
+      "to": "walk",
+      "label": "10 个文件",
+      "classification": "3 恶意 + 7 正常",
+      "variant": "emphasis",
+      "route": "vertical-channel",
+      "labelDx": 36
+    },
+    {
+      "from": "whitelist",
+      "to": "walk",
+      "label": "1 条路径",
+      "classification": "已知测试件跳过",
+      "variant": "dashed",
+      "route": "vertical-channel",
+      "labelDx": 36
+    },
+    {
+      "from": "walk",
+      "to": "rules",
+      "label": "逐文件匹配",
+      "classification": "编译后的规则集",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelDy": -48
+    },
+    {
+      "from": "rules",
+      "to": "report",
+      "label": "3 条命中",
+      "classification": "含命中串与偏移",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelDy": -48
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "三条规则各抓一种形状",
+      "items": [
+        "EICAR：精确文本串——行业标准测试件，链路验证必备",
+        "组合：多串逻辑「1 of 下载 × 1 of 执行」——单看 curl 无罪，合起来才可疑",
+        "IP 端点：正则——硬编码 IP + .php 的回连形态"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "白名单降噪的纪律",
+      "items": [
+        "降噪 = 对「已确认无害」的豁免（EICAR 是标准测试件才配进白名单）",
+        "白名单要小而精、定期复核、可追溯——不是遮丑布",
+        "成功指标：3/3 检出 + 0 误报，白名单只负责去掉已解释的噪声"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "性能账",
+      "items": [
+        "单文件毫秒级；10000 个文件全量扫描 0.4 秒（验收线 30s）",
+        "yara 内部多串匹配 + 条件逻辑二次筛选——规则写准就是提性能",
+        "扫描器真正的杠杆在规则质量，不在并发花活"
+      ]
+    }
+  ]
+}

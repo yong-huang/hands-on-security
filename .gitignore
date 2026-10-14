@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# 实验运行产物（脚本会重建）
+*.pcap
+*.pcapng
+*.log
+network/**/artifacts/
+network/**/output/
+
+# 临时文件
+*.tmp
+*.pid
+*.review.png
+*.visual-check.*
+tmp/
+.DS_Store

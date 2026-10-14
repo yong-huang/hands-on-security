@@ -1,0 +1,30 @@
+{
+  "description": "演示会话脚本：合成样本 pcap 时按此回放一次「明文 HTTP 登录」全过程（IP/MAC 均为文档用假地址）",
+  "client": { "name": "10.0.0.55", "ip": "10.0.0.55", "mac": "02:00:00:00:00:55" },
+  "server": { "name": "10.0.0.10", "ip": "10.0.0.10", "mac": "02:00:00:00:00:10", "hostname": "login.lab.local" },
+  "gateway": { "name": "10.0.0.1", "ip": "10.0.0.1", "mac": "02:00:00:00:00:01" },
+  "tls_peer": { "name": "93.184.216.34", "ip": "93.184.216.34", "mac": "02:00:00:00:00:99" },
+  "http": [
+    {
+      "method": "GET",
+      "path": "/login",
+      "response": 200,
+      "response_body": "<html><head><title>Lab 登录</title></head><body><form method=\"post\" action=\"/login\"><input name=\"username\"><input type=\"password\" name=\"password\"><button>登录</button></form></body></html>"
+    },
+    {
+      "method": "POST",
+      "path": "/login",
+      "form": { "username": "admin", "password": "wrongpass" },
+      "response": 401,
+      "response_body": "<html><body>用户名或密码错误</body></html>"
+    },
+    {
+      "method": "POST",
+      "path": "/login",
+      "form": { "username": "admin", "password": "S3cret123!" },
+      "response": 302,
+      "location": "/dashboard",
+      "response_body": ""
+    }
+  ]
+}

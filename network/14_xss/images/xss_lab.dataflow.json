@@ -1,0 +1,196 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "三种 XSS、同一个战果：页面里的脚本读走会话 cookie",
+    "output": "xss_lab.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [
+      1080,
+      560
+    ]
+  },
+  "stages": [
+    {
+      "label": "注入点"
+    },
+    {
+      "label": "执行时机"
+    },
+    {
+      "label": "战果"
+    },
+    {
+      "label": "修复"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "r_in",
+      "type": "security",
+      "label": "URL 参数",
+      "sublabel": "反射型：骗受害者点链接",
+      "stage": 0,
+      "row": 0,
+      "width": 150
+    },
+    {
+      "id": "echo",
+      "type": "frontend",
+      "label": "服务端原样回显",
+      "sublabel": "payload 进了 HTML",
+      "stage": 1,
+      "row": 0,
+      "width": 150
+    },
+    {
+      "id": "s_in",
+      "type": "security",
+      "label": "留言板提交",
+      "sublabel": "存储型：投毒一次，人人中招",
+      "stage": 0,
+      "row": 1,
+      "width": 150
+    },
+    {
+      "id": "bank",
+      "type": "frontend",
+      "label": "访客加载即执行",
+      "sublabel": "payload 从数据库来",
+      "stage": 1,
+      "row": 1,
+      "width": 150
+    },
+    {
+      "id": "d_in",
+      "type": "security",
+      "label": "URL 参数",
+      "sublabel": "DOM 型：服务器从不经手",
+      "stage": 0,
+      "row": 2,
+      "width": 150
+    },
+    {
+      "id": "js",
+      "type": "frontend",
+      "label": "客户端 JS 写入",
+      "sublabel": "document.write 解出 payload",
+      "stage": 1,
+      "row": 2,
+      "width": 150
+    },
+    {
+      "id": "recv",
+      "type": "database",
+      "label": "接收端 /steal",
+      "sublabel": "document.cookie 到手",
+      "stage": 2,
+      "row": 1,
+      "width": 150,
+      "tag": "实测 4/4"
+    },
+    {
+      "id": "fix",
+      "type": "security",
+      "label": "输出编码 + CSP",
+      "sublabel": "HttpOnly 让 cookie 拿不到",
+      "stage": 3,
+      "row": 1,
+      "width": 150
+    }
+  ],
+  "flows": [
+    {
+      "from": "r_in",
+      "to": "echo",
+      "label": "GET 回显",
+      "classification": "一次点击",
+      "variant": "emphasis",
+      "route": "straight"
+    },
+    {
+      "from": "echo",
+      "to": "recv",
+      "label": "立即执行",
+      "classification": "立即",
+      "variant": "emphasis",
+      "route": "vertical-channel",
+      "labelDx": 36
+    },
+    {
+      "from": "s_in",
+      "to": "bank",
+      "label": "入库",
+      "classification": "等鱼上钩",
+      "variant": "emphasis",
+      "route": "straight"
+    },
+    {
+      "from": "bank",
+      "to": "recv",
+      "classification": "任一访客",
+      "variant": "emphasis",
+      "route": "straight",
+      "label": "访客",
+      "labelDy": 48,
+      "labelDx": -50
+    },
+    {
+      "from": "d_in",
+      "to": "js",
+      "classification": "全程浏览器内",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelDy": -48,
+      "label": "纯前端"
+    },
+    {
+      "from": "js",
+      "to": "recv",
+      "classification": "响应里无 payload",
+      "variant": "emphasis",
+      "route": "vertical-channel",
+      "label": "浏览器内",
+      "labelDx": 62
+    },
+    {
+      "from": "recv",
+      "to": "fix",
+      "label": "修复",
+      "classification": "编码/CSP/HttpOnly",
+      "variant": "security",
+      "route": "straight",
+      "labelDy": -48
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "三型的区别在「谁把脚本放进去」",
+      "items": [
+        "反射：URL 参数 → 服务端回显（要受害者点链接）",
+        "存储：入库一次 → 所有访客页面带毒",
+        "DOM：payload 只在 URL 里、不参与服务端处理——响应里没有它"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "为什么偷 cookie 可怕",
+      "items": [
+        "会话 cookie 就是「已登录」的凭证——拿到即可冒充",
+        "DVWA 的会话 cookie 未设 HttpOnly，页面脚本直接可读",
+        "只偷到 security 档位也行：攻击者能把自己的档位调低"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "三层修复",
+      "items": [
+        "输出编码：按输出语境转义（HTML/属性/JS 各不相同）",
+        "CSP 限制 script-src，内联脚本直接拦下",
+        "Cookie 加 HttpOnly：脚本摸不到凭证"
+      ]
+    }
+  ]
+}

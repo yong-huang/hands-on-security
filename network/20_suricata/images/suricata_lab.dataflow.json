@@ -1,0 +1,165 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "离线检测流水线：三段 pcap 进，规则引擎出双份告警",
+    "output": "suricata_lab.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [
+      1080,
+      560
+    ]
+  },
+  "stages": [
+    {
+      "label": "输入语料"
+    },
+    {
+      "label": "解码与重组"
+    },
+    {
+      "label": "检测"
+    },
+    {
+      "label": "输出"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "scan",
+      "type": "security",
+      "label": "scan-syn.pcap",
+      "sublabel": "SYN 扫描 100 端口",
+      "stage": 0,
+      "row": 0,
+      "width": 150
+    },
+    {
+      "id": "sqli",
+      "type": "security",
+      "label": "sqli-union.pcap",
+      "sublabel": "URI 含 union select",
+      "stage": 0,
+      "row": 1,
+      "width": 150
+    },
+    {
+      "id": "benign",
+      "type": "frontend",
+      "label": "benign.pcap",
+      "sublabel": "正常请求（负对照）",
+      "stage": 0,
+      "row": 2,
+      "width": 150
+    },
+    {
+      "id": "decode",
+      "type": "backend",
+      "label": "解码与流重组",
+      "sublabel": "TCP 会话 → HTTP 解析",
+      "stage": 1,
+      "row": 1,
+      "width": 150
+    },
+    {
+      "id": "detect",
+      "type": "backend",
+      "label": "检测引擎",
+      "sublabel": "2 条自定义规则",
+      "stage": 2,
+      "row": 1,
+      "width": 150,
+      "tag": "sid 2000001/2"
+    },
+    {
+      "id": "out",
+      "type": "frontend",
+      "label": "告警落盘",
+      "sublabel": "fast.log / eve.json",
+      "stage": 3,
+      "row": 1,
+      "width": 150,
+      "tag": "jq 可检索"
+    }
+  ],
+  "flows": [
+    {
+      "from": "scan",
+      "to": "decode",
+      "label": "SYN × 100",
+      "classification": "2 秒内",
+      "variant": "emphasis",
+      "route": "vertical-channel",
+      "labelDx": 36
+    },
+    {
+      "from": "sqli",
+      "to": "decode",
+      "label": "一条 GET",
+      "classification": "带注入 URI",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelAt": [
+        180,
+        205
+      ]
+    },
+    {
+      "from": "benign",
+      "to": "decode",
+      "label": "对照",
+      "classification": "不应告警",
+      "variant": "dashed",
+      "route": "vertical-channel",
+      "labelDx": 36
+    },
+    {
+      "from": "decode",
+      "to": "detect",
+      "label": "流与载荷",
+      "classification": "逐条过规则",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelDy": -48
+    },
+    {
+      "from": "detect",
+      "to": "out",
+      "label": "命中规则",
+      "classification": "两个口径",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelDy": -48
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "两条规则怎么写",
+      "items": [
+        "① flags:S,12 只认纯 SYN；detection_filter count 20/5s 是引擎里的滑动窗口",
+        "② http.uri + pcre（union…select，兼容空格与 +）直接贴 URI 层匹配",
+        "msg / sid / rev 是门面：sid 自编号从 2000000 起，rev 记修订"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "为什么走离线 pcap",
+      "items": [
+        "macOS 没有 inline/IPS：-r 离线复现，规则调试与线上同源",
+        "-S 只加载自定义规则；--set 覆盖 HOME_NET 指向测试网段",
+        "--runmode single 固定多线程乱序——两跑输出逐字一致，可对账"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "fast.log 与 eve.json",
+      "items": [
+        "fast.log 给人扫一眼：时间戳来自包，一行一警",
+        "eve.json 给机器：jq / 管道 / SIEM 接入（实验 19 的延续）",
+        "同一命中两个出口——检测与取证各取所需"
+      ]
+    }
+  ]
+}

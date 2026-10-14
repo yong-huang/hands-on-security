@@ -1,0 +1,59 @@
+{
+  "description": "指纹规则：match 里每个非空条件组都必须命中（组内多个候选取或）；证据取首个命中的值",
+  "rules": [
+    {
+      "id": "simplehttp",
+      "name": "Python http.server",
+      "category": "server",
+      "match": { "server_contains": ["SimpleHTTP"] }
+    },
+    {
+      "id": "python",
+      "name": "Python",
+      "category": "language",
+      "match": { "server_contains": ["Python/"] }
+    },
+    {
+      "id": "werkzeug",
+      "name": "Werkzeug 开发服务器",
+      "category": "server",
+      "match": { "server_contains": ["Werkzeug"] }
+    },
+    {
+      "id": "flask",
+      "name": "Flask",
+      "category": "framework",
+      "match": { "server_contains": ["Werkzeug"] }
+    },
+    {
+      "id": "apache",
+      "name": "Apache httpd",
+      "category": "server",
+      "match": { "server_contains": ["Apache"] }
+    },
+    {
+      "id": "php",
+      "name": "PHP",
+      "category": "language",
+      "match": { "header_contains": { "X-Powered-By": ["PHP"] } }
+    },
+    {
+      "id": "labblog",
+      "name": "LabBlog",
+      "category": "cms",
+      "match": {
+        "body_contains": ["content=\"LabBlog"],
+        "favicon_md5": ["18a01fae2dd175ea37c7d07d9438ad65"]
+      }
+    },
+    {
+      "id": "mockcms",
+      "name": "MockCMS",
+      "category": "cms",
+      "match": {
+        "body_contains": ["content=\"MockCMS"],
+        "favicon_md5": ["6a71b8570b71dec9fd125b8ea28b2df7"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "description": "三个 JWT 靶的档位定义：vuln=信任 token 头里的算法（none 攻击面）；weak=HS256 弱密钥；strong=RS256 正规实现（公钥公开）。",
+  "user": { "username": "alice", "password": "wonderland" },
+  "profiles": {
+    "vuln": { "port": 8501, "secret": "irrelevant", "note": "按 header 的 alg 验签，含 none" },
+    "weak": { "port": 8502, "secret": "secret", "note": "HS256，6 字符纯小写弱密钥" },
+    "strong": { "port": 8503, "note": "RS256，公钥在 /public-key 公开，私钥不离开本机" }
+  },
+  "flag": "JWT-ADMIN-AREA-OK"
+}

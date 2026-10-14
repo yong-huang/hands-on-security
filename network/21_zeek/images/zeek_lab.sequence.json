@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "C2 心跳现场：30 秒一次的回连如何留下三段日志",
+    "output": "zeek_lab.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "column_fit": "spread",
+    "viewBox": [1060, 560]
+  },
+  "participants": [
+    { "id": "victim", "type": "frontend", "label": "内网主机 10.20.30.40", "sublabel": "被植入的受害者" },
+    { "id": "dns", "type": "backend", "label": "本地解析器", "sublabel": "10.20.30.53" },
+    { "id": "c2", "type": "security", "label": "C2 服务器", "sublabel": "beacon.cdn-analytics.net" }
+  ],
+  "segments": [
+    { "from": 152, "to": 310, "label": "心跳：固定周期、等长载荷" },
+    { "from": 338, "to": 458, "label": "同时期的 DGA 查询" }
+  ],
+  "messages": [
+    { "from": "victim", "to": "dns", "y": 172, "label": "解析 beacon.cdn-analytics.net", "variant": "emphasis" },
+    { "from": "dns", "to": "victim", "y": 210, "label": "A 203.0.113.99", "variant": "return" },
+    { "from": "victim", "to": "c2", "y": 248, "label": "POST /api/v2/ping · 等长 26B", "variant": "emphasis" },
+    { "from": "c2", "to": "victim", "y": 286, "label": "200 OK · 等长 2B", "variant": "return" },
+    { "from": "victim", "to": "c2", "y": 324, "label": "…30.0±0.15 秒后重复（共 7 次）", "variant": "dashed" },
+    { "from": "victim", "to": "dns", "y": 362, "label": "xj3kq9wzmv7p.net（随机域）", "variant": "dashed" },
+    { "from": "dns", "to": "victim", "y": 400, "label": "NXDOMAIN", "variant": "return" },
+    { "from": "victim", "to": "dns", "y": 438, "label": "kq7mz4tpl2.top / v8nq3xzr9km.net", "variant": "dashed" }
+  ],
+  "activations": [
+    { "participant": "victim", "from": 160, "to": 296, "type": "frontend" },
+    { "participant": "dns", "from": 164, "to": 218, "type": "backend" },
+    { "participant": "c2", "from": 238, "to": 296, "type": "security" },
+    { "participant": "victim", "from": 352, "to": 448, "type": "frontend" },
+    { "participant": "dns", "from": 354, "to": 410, "type": "backend" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "心跳的四个特征",
+      "items": [
+        "固定周期 + 低抖动：本实验 30.0±0.15s——统计间隔的均值与标准差即可露头",
+        "等长载荷：请求 26B、应答 2B 恒定——内容是加密的，长度没变",
+        "固定目的：同一域名、同一 IP 反复回连",
+        "检测 = 对（源 IP + 域名）分组后的间隔统计，jitter 小就是嫌疑"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Zeek 的三段日志",
+      "items": [
+        "conn.log：谁和谁连了（五元组、时长、流量）",
+        "dns.log：查了什么（域名、应答、rcode——DGA 的入口）",
+        "http.log：聊了什么（Host/URI/UA——心跳识别的现场）"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "DGA 与检测边界",
+      "items": [
+        "随机域名的简化启发式：长标签 + 含数字 + 元音稀少",
+        "真实 DGA 会对抗检测（词典拼接、慢速生成）——启发式要配合情报与模型",
+        "检出是概率提示不是判决：报告 + 人工复核才是闭环"
+      ]
+    }
+  ]
+}
