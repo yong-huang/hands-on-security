@@ -1,0 +1,176 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "覆写返回地址：从 pattern 到 flag 的利用链",
+    "output": "stack_overflow.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "lanes": [
+    {
+      "id": "chain",
+      "label": "栈溢出利用链"
+    },
+    {
+      "id": "contrast",
+      "label": "对照实验"
+    }
+  ],
+  "phases": [
+    {
+      "id": "prep",
+      "label": "构建",
+      "fromCol": 0,
+      "toCol": 1,
+      "variant": "emphasis"
+    },
+    {
+      "id": "exploit",
+      "label": "利用",
+      "fromCol": 2,
+      "toCol": 3
+    },
+    {
+      "id": "verify",
+      "label": "对照",
+      "fromCol": 4,
+      "toCol": 4,
+      "variant": "dashed"
+    }
+  ],
+  "mainPath": [
+    "src",
+    "build",
+    "locate",
+    "overwrite",
+    "pwn"
+  ],
+  "nodes": [
+    {
+      "id": "src",
+      "lane": "chain",
+      "col": 0,
+      "type": "security",
+      "label": "靶场源码",
+      "sublabel": "溢出 + win()",
+      "width": 150,
+      "tag": "vuln.c"
+    },
+    {
+      "id": "build",
+      "lane": "chain",
+      "col": 1,
+      "type": "backend",
+      "label": "双份编译",
+      "sublabel": "漏洞版 / canary 加固版",
+      "width": 150,
+      "tag": "-no-pie"
+    },
+    {
+      "id": "locate",
+      "lane": "chain",
+      "col": 2,
+      "type": "backend",
+      "label": "偏移定位",
+      "sublabel": "cyclic(200) → gdb 读 x30",
+      "width": 150,
+      "tag": "72 = 64+8"
+    },
+    {
+      "id": "overwrite",
+      "lane": "chain",
+      "col": 3,
+      "type": "backend",
+      "label": "覆写返回地址",
+      "sublabel": "72 字节填充 + p64(win)",
+      "width": 150,
+      "tag": "0x400744"
+    },
+    {
+      "id": "pwn",
+      "lane": "chain",
+      "col": 4,
+      "type": "frontend",
+      "label": "ret2win 得手",
+      "sublabel": "靶子亲手读 /flag",
+      "width": 150,
+      "tag": "HOSEC25{…}"
+    },
+    {
+      "id": "canary",
+      "lane": "contrast",
+      "col": 4,
+      "type": "security",
+      "label": "canary 对照",
+      "sublabel": "同一 payload 被哨兵拦下",
+      "width": 150,
+      "tag": "smashing"
+    }
+  ],
+  "edges": [
+    {
+      "id": "src-build",
+      "from": "src",
+      "to": "build",
+      "label": "编译",
+      "variant": "emphasis"
+    },
+    {
+      "id": "build-locate",
+      "from": "build",
+      "to": "locate",
+      "label": "喂 pattern",
+      "variant": "emphasis"
+    },
+    {
+      "id": "locate-overwrite",
+      "from": "locate",
+      "to": "overwrite",
+      "label": "填 72 字节"
+    },
+    {
+      "id": "overwrite-pwn",
+      "from": "overwrite",
+      "to": "pwn",
+      "label": "劫持 x30",
+      "variant": "emphasis"
+    },
+    {
+      "id": "pwn-canary",
+      "from": "pwn",
+      "to": "canary",
+      "label": "同款 payload",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "栈帧长什么样（aarch64）",
+      "items": [
+        "buf[64] 在栈底，往上依次是帧指针 x29（8 字节）与返回地址 x30（8 字节）",
+        "偏移 72 = 64 + 8：第 73 个字节起，写的就不是数据，而是「函数回哪去」",
+        "vuln() 收尾：从栈里恢复 x30 → ret：控制流跟着我们写的 8 字节走"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "canary 凭什么挡得住",
+      "items": [
+        "函数入口把随机 8 字节哨兵压在缓冲区与返回地址之间，返回前核对",
+        "精确定位偏移 = 必然踩中哨兵 → __stack_chk_fail → 进程在跳转前终止",
+        "glibc 打出 *** stack smashing detected ***（本实验特意用 glibc；musl 是静默崩）"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "ret2win 为什么赢得轻松",
+      "items": [
+        "-no-pie：win() = 0x400744 是固定地址，不需要泄漏任何地址",
+        "没写 shellcode：NX 开着也能打——我们改的是返回地址，不是栈上代码",
+        "win() 里的 exit(0) 是教学补丁：否则返回地址指向 win 自身会无限循环刷 flag"
+      ]
+    }
+  ]
+}

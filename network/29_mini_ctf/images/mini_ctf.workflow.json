@@ -1,0 +1,178 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "六关一平台：从解题到计分的一条流水线",
+    "output": "mini_ctf.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "lanes": [
+    {
+      "id": "flow",
+      "label": "全流程"
+    },
+    {
+      "id": "proof",
+      "label": "XSS 关加演"
+    }
+  ],
+  "phases": [
+    {
+      "id": "open",
+      "label": "开场",
+      "fromCol": 0,
+      "toCol": 0,
+      "variant": "emphasis"
+    },
+    {
+      "id": "solve",
+      "label": "解题",
+      "fromCol": 1,
+      "toCol": 1
+    },
+    {
+      "id": "judge",
+      "label": "判分",
+      "fromCol": 2,
+      "toCol": 2
+    },
+    {
+      "id": "done",
+      "label": "结果",
+      "fromCol": 3,
+      "toCol": 4,
+      "variant": "dashed"
+    }
+  ],
+  "mainPath": ["open", "solve", "submit", "board", "writeups"],
+  "nodes": [
+    {
+      "id": "open",
+      "lane": "flow",
+      "col": 0,
+      "type": "backend",
+      "label": "平台启动",
+      "sublabel": "六关上线 · 判分就绪",
+      "width": 150,
+      "tag": "127.0.0.1:8930"
+    },
+    {
+      "id": "solve",
+      "lane": "flow",
+      "col": 1,
+      "type": "security",
+      "label": "选手闯六关",
+      "sublabel": "编码/弱口令/注入/XSS/日志/逆向",
+      "width": 150,
+      "tag": "6/6"
+    },
+    {
+      "id": "submit",
+      "lane": "flow",
+      "col": 2,
+      "type": "backend",
+      "label": "flag 判分",
+      "sublabel": "首解计分 · 重提 already",
+      "width": 150,
+      "tag": "750 分制"
+    },
+    {
+      "id": "board",
+      "lane": "flow",
+      "col": 3,
+      "type": "database",
+      "label": "计分板",
+      "sublabel": "得分 + 时间 · 落盘",
+      "width": 150,
+      "tag": "scoreboard.json"
+    },
+    {
+      "id": "writeups",
+      "lane": "flow",
+      "col": 4,
+      "type": "frontend",
+      "label": "writeup 归档",
+      "sublabel": "每题思路 / 步骤 / 答案",
+      "width": 150,
+      "tag": "6 篇"
+    },
+    {
+      "id": "bot",
+      "lane": "proof",
+      "col": 1,
+      "type": "external",
+      "label": "管理员机器人",
+      "sublabel": "无头 Chrome 带 cookie 来访",
+      "width": 150,
+      "tag": "admin_bot.js"
+    }
+  ],
+  "edges": [
+    {
+      "id": "open-solve",
+      "from": "open",
+      "to": "solve",
+      "variant": "emphasis"
+    },
+    {
+      "id": "solve-submit",
+      "from": "solve",
+      "to": "submit",
+      "variant": "emphasis"
+    },
+    {
+      "id": "submit-board",
+      "from": "submit",
+      "to": "board"
+    },
+    {
+      "id": "board-writeups",
+      "from": "board",
+      "to": "writeups"
+    },
+    {
+      "id": "solve-bot",
+      "from": "solve",
+      "to": "bot",
+      "label": "④ 关上报留言",
+      "variant": "dashed"
+    },
+    {
+      "id": "bot-solve",
+      "from": "bot",
+      "to": "solve",
+      "label": "外带 cookie",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "六关 = 六个前置实验的实战化",
+      "items": [
+        "① 编码（7-9 手感）② 弱口令（7）③ 注入（13）④ XSS（14）⑤ 日志（19）⑥ 逆向（24）",
+        "解题器逐关打印「怎么想到、怎么做」——过程本身就是教程",
+        "六关全通 = 把前几个阶段的技能串成一条线"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "判分三条规矩",
+      "items": [
+        "首解才计分；重复提交回 already；错旗回 wrong——判分逻辑先过这三关",
+        "时间按提交顺序记录：展示层归一化 T+Xs，落盘保留原始值",
+        "状态实时写 scoreboard.json——平台崩了分数还在"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "XSS 关为什么是真的",
+      "items": [
+        "机器人 = 无头 Chrome 真带上 admin_session 打开留言页",
+        "注入的 onerror 脚本在浏览器里执行，把 document.cookie 外带给收集器",
+        "「注入 → 触发 → 外带 → 截获」与现实攻击同构，不是摆拍"
+      ]
+    }
+  ]
+}

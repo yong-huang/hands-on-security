@@ -1,0 +1,151 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "从字节到地址：手拆 ELF 的解析流水线",
+    "output": "binary_intro.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "lanes": [
+    {
+      "id": "flow",
+      "label": "解析流水线"
+    }
+  ],
+  "phases": [
+    {
+      "id": "parse",
+      "label": "拆解",
+      "fromCol": 1,
+      "toCol": 2,
+      "variant": "emphasis"
+    },
+    {
+      "id": "locate",
+      "label": "寻址",
+      "fromCol": 3,
+      "toCol": 3
+    },
+    {
+      "id": "verify",
+      "label": "对账",
+      "fromCol": 4,
+      "toCol": 4,
+      "variant": "dashed"
+    }
+  ],
+  "mainPath": ["bin", "hdr", "sec", "find", "verify"],
+  "nodes": [
+    {
+      "id": "bin",
+      "lane": "flow",
+      "col": 0,
+      "type": "security",
+      "label": "两个二进制",
+      "sublabel": "ELF + Mach-O（同源码）",
+      "width": 150,
+      "tag": "双格式"
+    },
+    {
+      "id": "hdr",
+      "lane": "flow",
+      "col": 1,
+      "type": "backend",
+      "label": "头字段解析",
+      "sublabel": "struct.unpack 手拆",
+      "width": 150,
+      "tag": "7 字段"
+    },
+    {
+      "id": "sec",
+      "lane": "flow",
+      "col": 2,
+      "type": "backend",
+      "label": "节表映射",
+      "sublabel": "偏移 ↔ 虚拟地址",
+      "width": 150,
+      "tag": ".rodata"
+    },
+    {
+      "id": "find",
+      "lane": "flow",
+      "col": 3,
+      "type": "backend",
+      "label": "字符串寻址",
+      "sublabel": "口令 / 成功串定位",
+      "width": 150,
+      "tag": "0x400818"
+    },
+    {
+      "id": "verify",
+      "lane": "flow",
+      "col": 4,
+      "type": "frontend",
+      "label": "独立对账",
+      "sublabel": "readelf / objdump / otool",
+      "width": 150,
+      "tag": "逐字段"
+    }
+  ],
+  "edges": [
+    {
+      "id": "bin-hdr",
+      "from": "bin",
+      "to": "hdr",
+      "label": "认魔数",
+      "variant": "emphasis"
+    },
+    {
+      "id": "hdr-sec",
+      "from": "hdr",
+      "to": "sec",
+      "label": "读 shoff",
+      "variant": "emphasis"
+    },
+    {
+      "id": "sec-find",
+      "from": "sec",
+      "to": "find",
+      "label": "addr-offset 桥",
+      "variant": "emphasis"
+    },
+    {
+      "id": "find-verify",
+      "from": "find",
+      "to": "verify",
+      "label": "交叉验证",
+      "variant": "security",
+      "role": "return"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "ELF 六个要认的字段",
+      "items": [
+        "magic 7f 45 4c 46 + class/endian：先知道「按什么规则拆」",
+        "type：EXEC 固定地址 / DYN（PIE）装载时加随机基址",
+        "machine + entry：这条代码给谁跑、从哪条指令开始"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "偏移 ≠ 地址",
+      "items": [
+        "文件偏移：字节「在文件里排第几」——strings -t x 给的就是它",
+        "虚拟地址：装载后代码看到的位置——节表的 addr 字段",
+        "桥就是节表：VA = sh_addr + (off − sh_offset)（本例 .rodata 0x400800/0x800）"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "为什么要手写一遍",
+      "items": [
+        "工具当黑盒用十年，也不懂结构——手拆一遍，readelf 每个字段都有出处",
+        "对账是理解的验收：7 字段对 readelf、字节对 objdump、头对 otool",
+        "同源码两格式：ELF（Linux 容器编译）与 Mach-O（macOS clang）只差「表怎么排」"
+      ]
+    }
+  ]
+}

@@ -19,7 +19,7 @@ PIP_MIRROR="${PIP_MIRROR:-https://pypi.tuna.tsinghua.edu.cn/simple}"
 # Python 依赖：import 名:pip 包名
 PIP_PKGS="dns:dnspython requests:requests cryptography:cryptography PyJWT:PyJWT bcrypt:bcrypt scapy:scapy yara:yara-python flask:flask PIL:pillow dpkt:dpkt pwn:pwntools"
 # CLI 工具：名称:用途说明（说明不含空格）
-BREW_TOOLS="nmap:端口对照 dnsmasq:DNS靶场 sqlmap:SQL注入 john:口令破解 hashcat:GPU破解 gobuster:目录爆破 suricata:IDS zeek:流量分析 trivy:镜像漏扫"
+BREW_TOOLS="nmap:端口对照 dnsmasq:DNS靶场 sqlmap:SQL注入 john:口令破解 hashcat:GPU破解 gobuster:目录爆破 suricata:IDS zeek:流量分析 trivy:镜像漏扫 jq:JSON处理"
 
 missing_pip=""
 for pair in $PIP_PKGS; do

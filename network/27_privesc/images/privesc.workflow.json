@@ -1,0 +1,203 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "三条通往 root 的路：SUID / sudo / cron 提权链",
+    "output": "privesc.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "lanes": [
+    {
+      "id": "suid",
+      "label": "① SUID 副本"
+    },
+    {
+      "id": "sudo",
+      "label": "② sudo 误配"
+    },
+    {
+      "id": "cron",
+      "label": "③ cron PATH 劫持"
+    }
+  ],
+  "phases": [
+    {
+      "id": "prep",
+      "label": "预埋",
+      "fromCol": 0,
+      "toCol": 0,
+      "variant": "emphasis"
+    },
+    {
+      "id": "scan",
+      "label": "低权检测",
+      "fromCol": 1,
+      "toCol": 1
+    },
+    {
+      "id": "exploit",
+      "label": "利用得手",
+      "fromCol": 2,
+      "toCol": 2,
+      "variant": "dashed"
+    }
+  ],
+  "mainPath": ["suid-plant", "suid-scan", "suid-exploit"],
+  "nodes": [
+    {
+      "id": "suid-plant",
+      "lane": "suid",
+      "col": 0,
+      "type": "security",
+      "label": "SUID find 副本",
+      "sublabel": "cp find → findroot 4755",
+      "width": 150,
+      "tag": "预埋"
+    },
+    {
+      "id": "suid-scan",
+      "lane": "suid",
+      "col": 1,
+      "type": "backend",
+      "label": "白名单外 + 字节比对",
+      "sublabel": "sha256 命中 /bin/find",
+      "width": 150,
+      "tag": "检出"
+    },
+    {
+      "id": "suid-exploit",
+      "lane": "suid",
+      "col": 2,
+      "type": "frontend",
+      "label": "find -exec sh -p",
+      "sublabel": "保留 euid → 0",
+      "width": 150,
+      "tag": "得手"
+    },
+    {
+      "id": "sudo-plant",
+      "lane": "sudo",
+      "col": 0,
+      "type": "security",
+      "label": "NOPASSWD: awk",
+      "sublabel": "一条 sudoers 规则",
+      "width": 150,
+      "tag": "预埋"
+    },
+    {
+      "id": "sudo-scan",
+      "lane": "sudo",
+      "col": 1,
+      "type": "backend",
+      "label": "sudo -n -l 免密列举",
+      "sublabel": "GTFOBins 命中 awk",
+      "width": 150,
+      "tag": "检出"
+    },
+    {
+      "id": "sudo-exploit",
+      "lane": "sudo",
+      "col": 2,
+      "type": "frontend",
+      "label": "awk system(id -u)",
+      "sublabel": "解释器逃逸",
+      "width": 150,
+      "tag": "得手"
+    },
+    {
+      "id": "cron-plant",
+      "lane": "cron",
+      "col": 0,
+      "type": "security",
+      "label": "PATH 前置用户目录",
+      "sublabel": "root 班车每分钟发车",
+      "width": 150,
+      "tag": "预埋"
+    },
+    {
+      "id": "cron-scan",
+      "lane": "cron",
+      "col": 1,
+      "type": "backend",
+      "label": "目录可创建即劫持",
+      "sublabel": "daily-backup 可抢占",
+      "width": 150,
+      "tag": "检出"
+    },
+    {
+      "id": "cron-exploit",
+      "lane": "cron",
+      "col": 2,
+      "type": "frontend",
+      "label": "埋马等班车",
+      "sublabel": "root 执行 → 0",
+      "width": 150,
+      "tag": "得手"
+    }
+  ],
+  "edges": [
+    {
+      "id": "suid-ps",
+      "from": "suid-plant",
+      "to": "suid-scan"
+    },
+    {
+      "id": "suid-se",
+      "from": "suid-scan",
+      "to": "suid-exploit",
+      "variant": "emphasis"
+    },
+    {
+      "id": "sudo-ps",
+      "from": "sudo-plant",
+      "to": "sudo-scan"
+    },
+    {
+      "id": "sudo-se",
+      "from": "sudo-scan",
+      "to": "sudo-exploit",
+      "variant": "emphasis"
+    },
+    {
+      "id": "cron-ps",
+      "from": "cron-plant",
+      "to": "cron-scan"
+    },
+    {
+      "id": "cron-se",
+      "from": "cron-scan",
+      "to": "cron-exploit",
+      "variant": "emphasis"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "检测器的信条：找基线偏差",
+      "items": [
+        "全盘 15 个 = 白名单 14 + 偏差 1——与 /bin/find 字节一致，sha256 照现",
+        "sudo：NOPASSWD 直通 awk/find/python 等可逃逸程序 = 白送 root 壳",
+        "cron：PATH 先查用户目录、目录可建、脚本可写——一个口子就致命"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "三张面孔，同一个死因",
+      "items": [
+        "SUID：把 root 权限借给了「谁都能跑的副本」",
+        "sudo：把 root 执行借给了「能被任意编程的解释器」",
+        "cron：把 root 调度借给「路径上的第一个文件」——信错了输入"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "验收纪律",
+      "items": [
+        "台账对照：脚本清单 == find / -perm -4000（10 个全中）",
+        "≥2/3 路径拿到 id -u=0，本实验 3/3（外加 rootbash 尾巴）",
+        "修复清单随报告出：chmod u-s / visudo 收紧 / PATH 只留系统目录——重扫应 0 告警"
+      ]
+    }
+  ]
+}

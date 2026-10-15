@@ -1,0 +1,192 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "配置 × CVE 双引擎：一本容器审计报告",
+    "output": "container_audit.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "lanes": [
+    {
+      "id": "cfg",
+      "label": "配置审计（docker inspect）"
+    },
+    {
+      "id": "cve",
+      "label": "CVE 审计（trivy）"
+    },
+    {
+      "id": "out",
+      "label": "汇总出口"
+    }
+  ],
+  "phases": [
+    {
+      "id": "input",
+      "label": "对象",
+      "fromCol": 0,
+      "toCol": 0,
+      "variant": "emphasis"
+    },
+    {
+      "id": "scan",
+      "label": "检测",
+      "fromCol": 1,
+      "toCol": 1
+    },
+    {
+      "id": "verdict",
+      "label": "结论",
+      "fromCol": 2,
+      "toCol": 2
+    },
+    {
+      "id": "report",
+      "label": "报告",
+      "fromCol": 3,
+      "toCol": 3,
+      "variant": "dashed"
+    }
+  ],
+  "mainPath": ["bad", "inspect", "findings", "report"],
+  "nodes": [
+    {
+      "id": "bad",
+      "lane": "cfg",
+      "col": 0,
+      "type": "security",
+      "label": "危险容器",
+      "sublabel": "privileged + sock + host 网络",
+      "width": 150,
+      "tag": "对照靶"
+    },
+    {
+      "id": "inspect",
+      "lane": "cfg",
+      "col": 1,
+      "type": "backend",
+      "label": "docker inspect 解析",
+      "sublabel": "9 条规则逐项判定",
+      "width": 150,
+      "tag": "audit.py"
+    },
+    {
+      "id": "findings",
+      "lane": "cfg",
+      "col": 2,
+      "type": "frontend",
+      "label": "检出 6 项",
+      "sublabel": "CRITICAL 2 · 评分 116",
+      "width": 150,
+      "tag": "高危"
+    },
+    {
+      "id": "old",
+      "lane": "cve",
+      "col": 0,
+      "type": "security",
+      "label": "旧镜像 nginx:1.19",
+      "sublabel": "2021 年 EOL 的对照靶",
+      "width": 150,
+      "tag": "对照靶"
+    },
+    {
+      "id": "trivy",
+      "lane": "cve",
+      "col": 1,
+      "type": "backend",
+      "label": "trivy 扫 HIGH+",
+      "sublabel": "镜像包 × 漏洞库比对",
+      "width": 150,
+      "tag": "CVE 引擎"
+    },
+    {
+      "id": "cve-out",
+      "lane": "cve",
+      "col": 2,
+      "type": "frontend",
+      "label": "汇总 189 个",
+      "sublabel": "CRITICAL 42 / HIGH 147",
+      "width": 150,
+      "tag": "高危"
+    },
+    {
+      "id": "report",
+      "lane": "out",
+      "col": 3,
+      "type": "database",
+      "label": "审计报告 + 加固建议",
+      "sublabel": "bad.md / cve.md",
+      "width": 150,
+      "tag": "输出"
+    }
+  ],
+  "edges": [
+    {
+      "id": "bad-inspect",
+      "from": "bad",
+      "to": "inspect"
+    },
+    {
+      "id": "inspect-findings",
+      "from": "inspect",
+      "to": "findings",
+      "variant": "emphasis"
+    },
+    {
+      "id": "old-trivy",
+      "from": "old",
+      "to": "trivy"
+    },
+    {
+      "id": "trivy-cve",
+      "from": "trivy",
+      "to": "cve-out",
+      "variant": "emphasis"
+    },
+    {
+      "id": "findings-report",
+      "from": "findings",
+      "to": "report",
+      "label": "汇入",
+      "variant": "emphasis"
+    },
+    {
+      "id": "cve-report",
+      "from": "cve-out",
+      "to": "report",
+      "label": "汇入",
+      "variant": "emphasis"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "三种「等于宿主 root」的配置",
+      "items": [
+        "privileged：全部能力 + 设备 + AppArmor 豁免，逃逸即宿主",
+        "挂 docker.sock：容器里遥控宿主守护进程，可再起特权容器",
+        "host 网络 / PID：拆掉隔离墙，直接看见并伸手到宿主"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "CVE 审计在算什么",
+      "items": [
+        "镜像每一层里的软件包 × 漏洞库（trivy-db）逐一对账",
+        "EOL 镜像 = 189 个 HIGH+；数字随漏洞库漂移，看趋势不看绝对值",
+        "库走国内镜像（南大 ghcr 代理 + ECR），首次下载约 1 分钟"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "加固基线与准入线",
+      "items": [
+        "--cap-drop ALL；不挂 sock；非 root + --read-only + no-new-privileges",
+        "加固容器 0 告警——审计器先证明不误报，再谈抓危险",
+        "改完配置用同一审计器回归，才算闭环"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,239 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "沙箱解剖：三路采集如何逮住一个勒索剧本",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "output": "sandbox.html",
+    "viewBox": [
+      1280,
+      560
+    ]
+  },
+  "components": [
+    {
+      "id": "driver",
+      "type": "external",
+      "label": "沙箱脚本",
+      "sublabel": "起容器 · 校验报告",
+      "tag": "sandbox_lab.sh",
+      "pos": [
+        30,
+        250
+      ],
+      "size": [
+        130,
+        68
+      ]
+    },
+    {
+      "id": "sample",
+      "type": "security",
+      "label": "恶意样本",
+      "sublabel": "批量加密 + 心跳外联",
+      "tag": "malicious.py",
+      "pos": [
+        230,
+        250
+      ],
+      "size": [
+        150,
+        68
+      ]
+    },
+    {
+      "id": "proc",
+      "type": "backend",
+      "label": "进程树采集",
+      "sublabel": "psutil 0.2s 轮询",
+      "tag": "进程",
+      "pos": [
+        440,
+        140
+      ],
+      "size": [
+        150,
+        68
+      ]
+    },
+    {
+      "id": "fs",
+      "type": "backend",
+      "label": "文件变更采集",
+      "sublabel": "watchdog / inotify",
+      "tag": "文件",
+      "pos": [
+        440,
+        250
+      ],
+      "size": [
+        150,
+        68
+      ]
+    },
+    {
+      "id": "net",
+      "type": "backend",
+      "label": "网络外联采集",
+      "sublabel": "连接快照 + C2 陷阱",
+      "tag": "网络",
+      "pos": [
+        440,
+        360
+      ],
+      "size": [
+        150,
+        68
+      ]
+    },
+    {
+      "id": "engine",
+      "type": "backend",
+      "label": "规则评分引擎",
+      "sublabel": "7 条规则 → 115 分",
+      "tag": "monitor.py",
+      "pos": [
+        650,
+        250
+      ],
+      "size": [
+        150,
+        68
+      ]
+    },
+    {
+      "id": "report",
+      "type": "database",
+      "label": "行为画像报告",
+      "sublabel": "时间线 + 证据",
+      "tag": "report.md",
+      "pos": [
+        870,
+        250
+      ],
+      "size": [
+        150,
+        68
+      ]
+    },
+    {
+      "id": "verdict",
+      "type": "frontend",
+      "label": "宿主核验",
+      "sublabel": "≥4 类 · 良性零误报",
+      "tag": "验收",
+      "pos": [
+        1090,
+        250
+      ],
+      "size": [
+        130,
+        68
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "security-group",
+      "label": "沙箱容器（--rm 一次性）",
+      "wraps": [
+        "sample",
+        "proc",
+        "fs",
+        "net",
+        "engine"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "driver-sample",
+      "from": "driver",
+      "to": "sample",
+      "label": "起沙箱",
+      "variant": "emphasis"
+    },
+    {
+      "id": "sample-proc",
+      "from": "sample",
+      "to": "proc",
+      "label": "进程行为",
+      "fromSide": "top",
+      "toSide": "left"
+    },
+    {
+      "id": "sample-fs",
+      "from": "sample",
+      "to": "fs",
+      "label": "文件行为"
+    },
+    {
+      "id": "sample-net",
+      "from": "sample",
+      "to": "net",
+      "label": "网络行为",
+      "fromSide": "bottom",
+      "toSide": "left"
+    },
+    {
+      "id": "proc-engine",
+      "from": "proc",
+      "to": "engine"
+    },
+    {
+      "id": "fs-engine",
+      "from": "fs",
+      "to": "engine"
+    },
+    {
+      "id": "net-engine",
+      "from": "net",
+      "to": "engine"
+    },
+    {
+      "id": "engine-report",
+      "from": "engine",
+      "to": "report",
+      "label": "落盘",
+      "variant": "emphasis"
+    },
+    {
+      "id": "report-verdict",
+      "from": "report",
+      "to": "verdict",
+      "label": "验收断言",
+      "variant": "security",
+      "toSide": "left"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "三路采集各自盯什么",
+      "items": [
+        "进程树（psutil 轮询）：谁拉起了谁——样本树下的每个新进程都记首次出现",
+        "文件（watchdog / inotify）：创建 / 删除 / 修改——批量 .locked 落盘就是加密在进行",
+        "网络（连接快照 + C2 陷阱）：远端端点与心跳次数——3 次 /beacon 骗不过去"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "为什么把样本关在容器里",
+      "items": [
+        "--rm 一次性容器：跑完即弃，宿主上留不下样本的爪印",
+        "样本只面对每次现造的 /sandbox 靶目录——炸了就炸了",
+        "报告是容器单向交给宿主的唯一产物——经挂载目录落盘后接受断言核验"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "评分怎么给",
+      "items": [
+        "7 条规则按危害加权：批量加密 +30、心跳外联 +25、勒索说明 +15……",
+        "≥60 判「高度疑似恶意行为」——本样本 115 分",
+        "良性对照必须 0 分：检测器先过准入线，再谈检出（与实验 23 同一纪律）"
+      ]
+    }
+  ]
+}

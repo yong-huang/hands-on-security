@@ -1,0 +1,157 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "五合一：sectool 从入口到三连全绿",
+    "output": "toolbox.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "lanes": [
+    {
+      "id": "cli",
+      "label": "工具箱"
+    },
+    {
+      "id": "test",
+      "label": "验收"
+    }
+  ],
+  "phases": [
+    {
+      "id": "entry",
+      "label": "入口",
+      "fromCol": 0,
+      "toCol": 0,
+      "variant": "emphasis"
+    },
+    {
+      "id": "reuse",
+      "label": "复用",
+      "fromCol": 1,
+      "toCol": 1
+    },
+    {
+      "id": "smoke",
+      "label": "冒烟",
+      "fromCol": 2,
+      "toCol": 2
+    },
+    {
+      "id": "done",
+      "label": "验收",
+      "fromCol": 3,
+      "toCol": 3,
+      "variant": "dashed"
+    }
+  ],
+  "mainPath": ["entry", "tools", "smoke", "triple"],
+  "nodes": [
+    {
+      "id": "entry",
+      "lane": "cli",
+      "col": 0,
+      "type": "frontend",
+      "label": "sectool 入口",
+      "sublabel": "argparse 分派五子命令",
+      "width": 150,
+      "tag": "统一退出码"
+    },
+    {
+      "id": "tools",
+      "lane": "cli",
+      "col": 1,
+      "type": "backend",
+      "label": "五件工具",
+      "sublabel": "01/02/03/07/19 原样复用",
+      "width": 150,
+      "tag": "零修改"
+    },
+    {
+      "id": "smoke",
+      "lane": "cli",
+      "col": 2,
+      "type": "security",
+      "label": "一键冒烟",
+      "sublabel": "起最小靶 · 五项逐一断言",
+      "width": 150,
+      "tag": "smoke_test.sh"
+    },
+    {
+      "id": "triple",
+      "lane": "cli",
+      "col": 3,
+      "type": "frontend",
+      "label": "三连全绿",
+      "sublabel": "1 轮全显 + 2 轮静默",
+      "width": 150,
+      "tag": "6/0 通过"
+    },
+    {
+      "id": "targets",
+      "lane": "test",
+      "col": 2,
+      "type": "external",
+      "label": "最小靶与夹具",
+      "sublabel": "HTTP :8821 / lab.local DNS / 字典日志",
+      "width": 150,
+      "tag": "本地可复现"
+    }
+  ],
+  "edges": [
+    {
+      "id": "entry-tools",
+      "from": "entry",
+      "to": "tools",
+      "variant": "emphasis"
+    },
+    {
+      "id": "tools-smoke",
+      "from": "tools",
+      "to": "smoke",
+      "variant": "emphasis"
+    },
+    {
+      "id": "smoke-triple",
+      "from": "smoke",
+      "to": "triple",
+      "variant": "emphasis"
+    },
+    {
+      "id": "smoke-targets",
+      "from": "smoke",
+      "to": "targets",
+      "label": "拉起",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "「胶水」也是工程",
+      "items": [
+        "复用 > 重写：五个工具一行没改，靠 import 原样收编",
+        "统一三件套：结果行缩进、末尾汇总行、退出码 0/1/2/3",
+        "子命令帮助逐条抄自原工具——用户看到的就是同一个口径"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "冒烟测试的哲学",
+      "items": [
+        "每次都从零起最小靶：HTTP + DNS + 字典 + 日志，不依赖手搭环境",
+        "断言两层：退出码 + 关键输出（扫到端口、命中文件、检出来源）",
+        "--quiet 只留结论行——三连不红才叫可交付"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "系列收官：从 01 到 30",
+      "items": [
+        "工具箱把三十课的肌肉记忆打成一个命令：sectool <子命令>",
+        "真正的护城河不是命令本身，而是知道每个参数为什么这么设计",
+        "下一步：换成你的目标（授权范围内），工具箱即刻上岗"
+      ]
+    }
+  ]
+}
