@@ -76,7 +76,7 @@ cd network/16_upload_webshell
 [gen]   shell.php      一句话木马（31 字节）
 [gen]   shell.php.jpg  双扩展名（内容同一句话）
 [gen]   shell.jpg      GIF 图片马（真图 + php 尾巴，75 字节）
-  ✅ 上传点就绪：http://127.0.0.1:8080/vulnerabilities/upload/（low 会话已备给文件包含用）
+  ✅ 上传点就绪：http://127.0.0.1:8612/vulnerabilities/upload/（low 会话已备给文件包含用）
 
 =====> [observe] ① low：无任何校验——一句话木马直接落地并执行
 [upload] 文件名=shell.php 声明类型=application/octet-stream（low 档）→ 上传成功

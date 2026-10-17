@@ -9,7 +9,7 @@ cd "$(dirname "$0")"
 
 PY="${PYTHON:-python3}"
 ART="artifacts"
-BASE="http://127.0.0.1:8080"
+BASE="http://127.0.0.1:8612"
 UP_DIR="../12_dvwa/artifacts/dvwa/hackable/uploads"
 SHELLS=("shell.php" "shell.php.jpg" "shell.jpg")
 

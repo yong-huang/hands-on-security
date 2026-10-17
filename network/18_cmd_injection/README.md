@@ -72,7 +72,7 @@ cd network/18_cmd_injection
 ... # dvwa.sh 两行（「初始化数据库」段头与其下 ✅ 行）省略（段内空行从略，下同）
 [gen] payload 速查表 → artifacts/payloads.txt
 ... # payload 速查表全文（18 行）省略——artifacts/payloads.txt 可查
-  ✅ 注入点就绪：http://127.0.0.1:8080/vulnerabilities/exec/（ip 参数）
+  ✅ 注入点就绪：http://127.0.0.1:8612/vulnerabilities/exec/（ip 参数）
 
 =====> [observe] ① low：无过滤——分号与管道四式随意
 [exec] level=low payload：127.0.0.1; whoami

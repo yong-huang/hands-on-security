@@ -21,7 +21,7 @@ from pathlib import Path
 import requests
 
 ART = Path(__file__).parent / "artifacts"
-BASE = "http://127.0.0.1:8080"
+BASE = "http://127.0.0.1:8612"
 SUSPECT = "203.0.113.66"
 MILD = "198.51.100.23"
 SCANNER = "192.0.2.44"

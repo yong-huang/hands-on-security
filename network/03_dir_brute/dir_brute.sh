@@ -14,7 +14,7 @@ CONF="configs/lab_site_paths.json"        # 靶站路径清单：靶站与断言
 PIDFILE="/tmp/hosec03-flask.pid"          # 靶站 PID，clean 精准回收自己的进程
 LOG="/tmp/hosec03-flask.log"
 OUT="/tmp/hosec03-scan.out"               # 各次扫描输出，供断言复用
-DVWA="${DVWA_URL:-http://localhost:8080}" # 项目 12 的 DVWA 地址（未就绪自动跳过）
+DVWA="${DVWA_URL:-http://localhost:8612}" # 项目 12 的 DVWA 地址（未就绪自动跳过）
 
 step() { echo; echo "=====> [$1] $2"; }
 ok()   { echo "  ✅ $*"; }

@@ -74,11 +74,11 @@ cd network/12_dvwa
   ✅ DVWA 源码已存在：artifacts/dvwa（复用；删掉该目录可重新下载）
   ✅ config.inc.php 已存在（复用）
 ... # 块首「环境检查与靶场栈启动」段头与「构建并启动」段头、compose 构建/创建容器约 50 行输出省略（段内空行从略，下同）
-  ✅ 入口就绪：http://localhost:8080/login.php
+  ✅ 入口就绪：http://localhost:8612/login.php
 ... # 「初始化数据库」段头省略
   ✅ 数据库已建好（dvwa 库 4 张表，含 users/guestbook）
 ... # 「验收一」段头省略
-  curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/login.php
+  curl -s -o /dev/null -w "%{http_code}" http://localhost:8612/login.php
   → 200
   ✅ login.php 返回 200
 ... # 「验收二」段头省略
@@ -116,8 +116,8 @@ Apache 配置）；db 用本机已有的 mysql:8.0；`depends_on + healthcheck`
 
 **改包重放**：拦截 → 改一个字段（low→medium）→ 重放。服务器照单全收
 ——「当前安全等级」在 DVWA 里就是客户端提交的状态。Burp 手工版：装好后
-Proxy 端口改 **8081**（8080 被靶站占），浏览器代理指向它，开 Intercept
-重复登录即可。
+保持默认 Proxy 端口 **8080** 即可（靶站已避开 8080，选 8612），浏览器
+代理指向它，开 Intercept 重复登录即可。
 
 **离线搭建实录**（网络封锁下）：Docker Hub 断流、GitHub 直连 000、Debian
 源超时——对策：源码走加速代理下 tarball、web 镜像从本地 alpine 起底
@@ -128,7 +128,7 @@ Proxy 端口改 **8081**（8080 被靶站占），浏览器代理指向它，开
 
 踩坑清单（现象 → 原因 → 解法）：
 
-- **8080 被占用**：`lsof -i :8080` 查占用者，或 `DVWA_PORT=8081 ./dvwa.sh`。
+- **8612 被占用**：`lsof -i :8612` 查占用者，或 `DVWA_PORT=8613 ./dvwa.sh`。
 - **登录失败但页面正常**：多半是数据库没初始化——先跑 `./dvwa.sh apply`
   让 setup.php 建库（脚本已自动化）。
 - **表单提交没反应**：CSRF token 缺失或复用——token 是一次性的，每个

@@ -5,10 +5,10 @@
     python3 csrf_ssrf_lab.py session [--level low|medium|high]   # 登录 DVWA，打印 cookie
     python3 csrf_ssrf_lab.py check --password X                 # 试登录 X，判定密码状态
     python3 csrf_ssrf_lab.py restore --password X               # 用 X 登录后改回 password
-    python3 csrf_ssrf_lab.py probe [--ports 8080,3306,8601,3999] # 经 SSRF 靶探测端口
+    python3 csrf_ssrf_lab.py probe [--ports 8612,3306,8601,3999] # 经 SSRF 靶探测端口
     python3 csrf_ssrf_lab.py fetch --url file:///etc/passwd     # 经 SSRF 靶读任意 URL
 
-只打本机 DVWA（127.0.0.1:8080）与自建的 SSRF 靶（127.0.0.1:8602）。
+只打本机 DVWA（127.0.0.1:8612）与自建的 SSRF 靶（127.0.0.1:8602）。
 """
 import argparse
 import re
@@ -17,7 +17,7 @@ import time
 
 import requests
 
-BASE = "http://127.0.0.1:8080"
+BASE = "http://127.0.0.1:8612"
 SSRF = "http://127.0.0.1:8602"
 
 
@@ -139,7 +139,7 @@ def main():
     p2.set_defaults(func=cmd_restore)
 
     p3 = sub.add_parser("probe")
-    p3.add_argument("--ports", default="8080,3306,8601,3999")
+    p3.add_argument("--ports", default="8612,3306,8601,3999")
     p3.set_defaults(func=cmd_probe)
 
     p4 = sub.add_parser("fetch")

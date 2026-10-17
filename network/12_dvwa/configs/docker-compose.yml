@@ -27,7 +27,8 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "8080:80"                     # 浏览器与 Burp 都从这里进
+      - "127.0.0.1:8612:80"           # 浏览器与 Burp 都从这里进；仅回环，
+                                      # 8612 避开 8080（Burp 默认代理口），防冲突
     volumes:
       - ../artifacts/dvwa:/var/www/html                 # DVWA 源码（从官方镜像抽取）
       - ../artifacts/config.inc.php:/var/www/html/config/config.inc.php:ro

@@ -28,7 +28,7 @@
     {
       "id": "dvwa",
       "type": "backend",
-      "label": "DVWA :8080",
+      "label": "DVWA :8612",
       "sublabel": "改密端点"
     },
     {

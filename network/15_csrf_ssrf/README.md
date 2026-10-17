@@ -106,7 +106,7 @@ visited: http://127.0.0.1:8601/wallpaper/0.0.0.0
 =====> [observe] ⑤ SSRF：经内网服务探测端口（响应差异当侧信道）
 [probe] 经 SSRF 靶（127.0.0.1:8602）探测 127.0.0.1 的 4 个端口：
   端口   判定      耗时      长度    证据
-  8080   open       13ms   1248B  [目标 http://127.0.0.1:8080/ 取回 1200 字节（最多 1200）
+  8612   open       13ms   1248B  [目标 http://127.0.0.1:8612/ 取回 1200 字节（最多 1200）
   3306   open       10ms     42B  ERROR: BadStatusLine("J\x00\x00\x00\x0a")
   8601   open        2ms     46B  ERROR: HTTPError("HTTP Error 404: NOT FOUND")
   3999   closed      1ms     65B  ERROR: URLError("<urlopen error [Errno 61] Con
@@ -140,7 +140,7 @@ root:*:0:0:System Administrator:/var/root:/bin/sh
 > 🌐 **交互版**：本地打开 [`images/csrf_ssrf_lab.html`](images/csrf_ssrf_lab.html)。
 
 **两个条件，一条请求**：攻击页本身平凡——一个自动提交的隐藏表单。魔法在
-浏览器里：请求发往 127.0.0.1:8080 时自动附上该主机的会话 cookie——
+浏览器里：请求发往 127.0.0.1:8612 时自动附上该主机的会话 cookie——
 cookie 按主机共享、不分端口；攻击页的 JS 读不到它，却拦不住它被带上，
 服务端只查「有没有效 cookie」，就把跨站请求当了真。
 
@@ -152,7 +152,7 @@ URL——把 0.0.0.0 写进路径即可。
 token 则不同：它随机会话生成、随页面下发，不读页面拿不到，而跨站页面
 恰好读不到。
 
-**盲 SSRF 的判定表**：/fetch 把每次尝试转成文本——HTTP 服务回内容（8080
+**盲 SSRF 的判定表**：/fetch 把每次尝试转成文本——HTTP 服务回内容（8612
 截到 1200 字节）；非 HTTP 服务的协议问候成了坏状态行（3306 的
 `J\x00\x00\x00\x0a` = MySQL 握手包头）；连不上秒回 Connection
 refused——三态就是盲打的全部信号。

@@ -11,7 +11,7 @@
   },
   "participants": [
     { "id": "attacker", "type": "security", "label": "攻击者工具", "sublabel": "payload 随档位变" },
-    { "id": "exec", "type": "backend", "label": "exec 模块 :8080", "sublabel": "黑名单过滤后拼接" },
+    { "id": "exec", "type": "backend", "label": "exec 模块 :8612", "sublabel": "黑名单过滤后拼接" },
     { "id": "shell", "type": "messagebus", "label": "系统 shell", "sublabel": "以 Web 进程身份执行" }
   ],
   "segments": [

@@ -29,7 +29,7 @@ do_apply() {
     ../12_dvwa/dvwa.sh apply | tail -2
     "$PY" cmd_lab.py gen | tee "$ART/gen.out"
     grep -q "high：" "$ART/gen.out" || die "速查表生成异常"
-    ok "注入点就绪：http://127.0.0.1:8080/vulnerabilities/exec/（ip 参数）"
+    ok "注入点就绪：http://127.0.0.1:8612/vulnerabilities/exec/（ip 参数）"
 }
 
 do_observe() {

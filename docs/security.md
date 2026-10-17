@@ -243,7 +243,7 @@
 | **行数** | ~50 行 docker-compose + 笔记 |
 | **核心知识点** | docker compose、DVWA 安全等级切换、Burp Suite 代理与拦截、渗透工作流 |
 | **⚠️ 风险** | Docker Hub 直连不通（2026-10 实测 HTTP 000）→ 先配镜像加速器；官方 DVWA 镜像 amd64-only → 依赖 Docker Desktop Rosetta；fallback：用 multi-arch 的 `php:8-apache` 镜像 + DVWA GitHub 源码自部署 |
-| **验收标准** | 浏览器登录 DVWA 成功并把安全等级切到 low；`curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/login.php` 返回 200；Burp 拦截一次登录请求并改包重放成功 |
+| **验收标准** | 浏览器登录 DVWA 成功并把安全等级切到 low；`curl -s -o /dev/null -w "%{http_code}" http://localhost:8612/login.php` 返回 200；Burp 拦截一次登录请求并改包重放成功 |
 
 **🤖 开始提示词**：
 > `我要开始网络安全项目「搭建 DVWA 靶场与渗透工作台」。我在 macOS arm64，Docker Desktop 已装但 Docker Hub 直连不通。请给我：国内镜像加速器配置、DVWA 的 docker-compose.yml（兼容 amd64 镜像方案）或 php:8-apache + DVWA 源码自部署方案二选一、Burp Suite 社区版代理配置步骤、验收命令清单。`

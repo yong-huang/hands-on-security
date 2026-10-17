@@ -101,10 +101,10 @@ cd network/14_xss
 
 =====> [observe] ⑤ 汇总：四次攻击共 4 条回调（每一条都含会话 cookie）
 [captures] 共 4 条回调：
-  01:27:38	127.0.0.1	http://127.0.0.1:8080/	PHPSESSID=70ij26ek9ujl3j7kjtrstn4931; security=low
-  01:27:45	127.0.0.1	http://127.0.0.1:8080/	PHPSESSID=70ij26ek9ujl3j7kjtrstn4931; security=low
-  01:27:50	127.0.0.1	http://127.0.0.1:8080/	PHPSESSID=70ij26ek9ujl3j7kjtrstn4931; security=low
-  01:27:56	127.0.0.1	http://127.0.0.1:8080/	PHPSESSID=inkag0g7gsijoj3irq6d2hnsiu; security=medium
+  01:27:38	127.0.0.1	http://127.0.0.1:8612/	PHPSESSID=70ij26ek9ujl3j7kjtrstn4931; security=low
+  01:27:45	127.0.0.1	http://127.0.0.1:8612/	PHPSESSID=70ij26ek9ujl3j7kjtrstn4931; security=low
+  01:27:50	127.0.0.1	http://127.0.0.1:8612/	PHPSESSID=70ij26ek9ujl3j7kjtrstn4931; security=low
+  01:27:56	127.0.0.1	http://127.0.0.1:8612/	PHPSESSID=inkag0g7gsijoj3irq6d2hnsiu; security=medium
 ... # 「期望 ≥4 条：满足」与汇总 ✅ 行、clean 段省略
 ```
 

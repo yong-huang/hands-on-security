@@ -8,7 +8,7 @@ set -euo pipefail
 cd "$(dirname "$0")"                      # 任意 cwd 运行都正确
 
 PY="${PYTHON:-python3}"
-PORT="${DVWA_PORT:-8080}"
+PORT="${DVWA_PORT:-8612}"   # 避开 8080（开发服务器与 Burp 默认代理的重灾区）
 ART="artifacts"                           # 源码/配置/cookie（.gitignore 已忽略）
 SRC="$ART/dvwa"
 COMPOSE=(docker compose -p hosec12 -f configs/docker-compose.yml)
@@ -76,7 +76,7 @@ do_apply() {
         ok "靶场已在运行：http://localhost:${PORT}/login.php（复用）"
     else
         if lsof -nP -iTCP:"$PORT" -sTCP:LISTEN >/dev/null 2>&1; then
-            die "端口 ${PORT} 被其他进程占用：lsof -i :${PORT}（或 DVWA_PORT=8081 ./dvwa.sh）"
+            die "端口 ${PORT} 被其他进程占用：lsof -i :${PORT}（或 DVWA_PORT=8613 ./dvwa.sh）"
         fi
         ensure_source
         ensure_config
@@ -156,7 +156,7 @@ do_observe() {
     ok "已复位回 low"
 
     if ls /Applications 2>/dev/null | grep -qi "burp"; then
-        ok "检测到 Burp Suite 已安装：README 里有代理（8080→改端口）与拦截步骤"
+        ok "检测到 Burp Suite 已安装：README 里有代理（默认 8080 即可）与拦截步骤"
     else
         echo "  ℹ️  未检测到 Burp Suite：brew install --cask burp-suite；"
         echo "      本步用 curl 复刻了「拦截→改包→重放」的完整工作流，Burp 步骤见 README"

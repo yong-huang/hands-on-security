@@ -18,7 +18,7 @@ from pathlib import Path
 
 import requests
 
-BASE = "http://127.0.0.1:8080"
+BASE = "http://127.0.0.1:8612"
 EXEC = f"{BASE}/vulnerabilities/exec/"
 ART = Path(__file__).parent / "artifacts"
 TOKEN_RE = r"name='user_token' value='([^']+)'"

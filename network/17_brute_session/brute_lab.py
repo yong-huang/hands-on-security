@@ -20,7 +20,7 @@ from pathlib import Path
 
 import requests
 
-BASE = "http://127.0.0.1:8080"
+BASE = "http://127.0.0.1:8612"
 BRUTE = f"{BASE}/vulnerabilities/brute/"
 ART = Path(__file__).parent / "artifacts"
 SUCCESS_MARK = "Welcome to the password protected area"

@@ -114,7 +114,7 @@ do_observe() {
         || die "对照登录失败（密码应保持在初始值）"
 
     step "observe" "⑤ SSRF：经内网服务探测端口（响应差异当侧信道）"
-    "$PY" csrf_ssrf_lab.py probe --ports 8080,3306,8601,3999 | tee "$ART/probe.out"
+    "$PY" csrf_ssrf_lab.py probe --ports 8612,3306,8601,3999 | tee "$ART/probe.out"
     grep -q '3306.*open' "$ART/probe.out" || die "3306 未判定为开放"
     ok "3306 判定为 open——响应里带着 MySQL 握手包（非 HTTP 服务的马脚）"
 

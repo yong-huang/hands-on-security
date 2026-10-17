@@ -63,7 +63,7 @@
         150,
         70
       ],
-      "tag": "8080→80"
+      "tag": "8612→80"
     },
     {
       "id": "db",
@@ -158,7 +158,7 @@
       "id": "browser-web",
       "from": "browser",
       "to": "web",
-      "label": "HTTP :8080",
+      "label": "HTTP :8612",
       "variant": "emphasis"
     },
     {

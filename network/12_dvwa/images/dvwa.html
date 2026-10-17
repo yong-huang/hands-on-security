@@ -5037,7 +5037,7 @@
         <!-- Connection paths (before components for correct z-order) -->
         <path data-edge-from="browser" data-edge-to="burp" data-edge-label="配置代理" data-edge-key="0" data-edge-id="browser-burp" data-composition-points="125,180;125,240" d="M 125 180 L 125 240" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         <path data-edge-from="burp" data-edge-to="web" data-edge-label="拦截的请求" data-edge-key="1" data-edge-id="burp-web" data-composition-points="190,270;305,270;305,165;420,165" d="M 190 270 L 297 270 Q 305 270 305 262 L 305 173 Q 305 165 313 165 L 420 165" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path data-edge-from="browser" data-edge-to="web" data-edge-label="HTTP :8080" data-edge-key="2" data-edge-id="browser-web" data-composition-points="190,150;420,150" d="M 190 150 L 420 150" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path data-edge-from="browser" data-edge-to="web" data-edge-label="HTTP :8612" data-edge-key="2" data-edge-id="browser-web" data-composition-points="190,150;420,150" d="M 190 150 L 420 150" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <path data-edge-from="script" data-edge-to="web" data-edge-label="curl 验收 / setup" data-edge-key="3" data-edge-id="script-web" data-composition-points="190,390;305,390;305,165;420,165" d="M 190 390 L 297 390 Q 305 390 305 382 L 305 173 Q 305 165 313 165 L 420 165" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="web" data-edge-to="db" data-edge-label="mysqli :3306" data-edge-key="4" data-edge-id="web-db" data-composition-points="570,165;660,165" d="M 570 165 L 660 165" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <path data-edge-from="web" data-edge-to="srcvol" data-edge-label="执行源码" data-edge-key="5" data-edge-id="web-src" data-composition-points="495,200;495,320" d="M 495 200 L 495 320" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
@@ -5079,8 +5079,8 @@
         <text data-detail="context" x="125" y="404" class="t-muted" font-size="9" text-anchor="middle">编排 + curl 验收</text>
         </g>
 
-        <g id="node-web" data-node-id="web" data-node-label="web 容器" tabindex="0" role="button" aria-label="聚焦web 容器，php82 内置服务器, Docker Desktop · compose 栈 hosec12" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="php82 内置服务器" data-node-tag="8080→80" data-node-context="Docker Desktop · compose 栈 hosec12">
-          <title>web 容器 · php82 内置服务器 · Docker Desktop · compose 栈 hosec12 · 8080→80</title>
+        <g id="node-web" data-node-id="web" data-node-label="web 容器" tabindex="0" role="button" aria-label="聚焦web 容器，php82 内置服务器, Docker Desktop · compose 栈 hosec12" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="php82 内置服务器" data-node-tag="8612→80" data-node-context="Docker Desktop · compose 栈 hosec12">
+          <title>web 容器 · php82 内置服务器 · Docker Desktop · compose 栈 hosec12 · 8612→80</title>
           <rect x="420" y="130" width="150" height="70" rx="6" class="c-mask"/>
           <rect x="420" y="130" width="150" height="70" rx="6" class="c-cloud" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(426 136) scale(0.6875)">
@@ -5088,7 +5088,7 @@
           </g>
           <text data-node-label="" data-detail-anchor="" x="495" y="163" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">web 容器</text>
         <text data-detail="context" x="495" y="179" class="t-muted" font-size="9" text-anchor="middle">php82 内置服务器</text>
-        <text data-detail="fine" x="495" y="192" class="t-cloud" font-size="7" text-anchor="middle">8080→80</text>
+        <text data-detail="fine" x="495" y="192" class="t-cloud" font-size="7" text-anchor="middle">8612→80</text>
         </g>
 
         <g id="node-db" data-node-id="db" data-node-label="db 容器" tabindex="0" role="button" aria-label="聚焦db 容器，mysql:8.0, Docker Desktop · compose 栈 hosec12" aria-pressed="false" data-node-kind="database" data-node-sublabel="mysql:8.0" data-node-context="Docker Desktop · compose 栈 hosec12">
@@ -5136,9 +5136,9 @@
           <rect x="196" y="310" width="58" height="14" rx="3" class="c-mask"/>
           <text x="225" y="320" class="t-backend" font-size="8" text-anchor="middle">拦截的请求</text>
         </g>
-        <g data-detail="context" data-edge-from="browser" data-edge-to="web" data-edge-label="HTTP :8080" data-edge-key="2" data-edge-id="browser-web">
+        <g data-detail="context" data-edge-from="browser" data-edge-to="web" data-edge-label="HTTP :8612" data-edge-key="2" data-edge-id="browser-web">
           <rect x="276" y="130" width="58" height="14" rx="3" class="c-mask"/>
-          <text x="305" y="140" class="t-backend" font-size="8" text-anchor="middle">HTTP :8080</text>
+          <text x="305" y="140" class="t-backend" font-size="8" text-anchor="middle">HTTP :8612</text>
         </g>
         <g data-detail="context" data-edge-from="script" data-edge-to="web" data-edge-label="curl 验收 / setup" data-edge-key="3" data-edge-id="script-web">
           <rect x="254.2" y="340" width="91.6" height="14" rx="3" class="c-mask"/>
